@@ -17,6 +17,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "axios": "^0.18.0",
         "babel-preset-env": "^1.6.1",
         "bluebird": "^3.4.7",
         "body-parser": "^1.16.0",
@@ -27,6 +28,8 @@
         "debug": "^2.6.0",
         "ensureDir": "^1.0.6",
         "express": "^4.14.1",
+        "google-auth-library": "^2.0.2",
+        "googleapis": "^36.0.0",
         "hashids": "^1.1.1",
         "jwt-simple": "^0.5.1",
         "limax": "^1.6.0",

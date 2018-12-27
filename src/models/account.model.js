@@ -7,6 +7,8 @@ import pbkdf2 from "../services/pbkdf2"
 import validation from "../services/validation"
 import config from "../config"
 import jwt from "jwt-simple"
+import axios from "axios"
+import { OAuth2Client } from "google-auth-library"
 import User from "./user.model"
 
 mongoose.Promise = require("bluebird")
@@ -18,7 +20,11 @@ const accountSchema = new Schema(
     isAdmin: { type: Boolean, default: false },
     provider: {
       type: String,
-      enum: [CONST.ACCOUNT_PROVIDER.EMAIL],
+      enum: [
+        CONST.ACCOUNT_PROVIDER.EMAIL,
+        CONST.ACCOUNT_PROVIDER.FACEBOOK,
+        CONST.ACCOUNT_PROVIDER.GOOGLE
+      ],
       required: true
     },
     credentials: { type: Object, required: true },
@@ -63,9 +69,7 @@ accountSchema.statics.createByEmail = data => {
         }
       })
       .then(() => {
-        let user = new User({
-          username: data.username
-        })
+        const user = new User({ username: data.username })
         return Promise.all([user.save(), pbkdf2.hashPassword(data.password)])
       })
       .then(([user, hash]) => {
@@ -87,7 +91,7 @@ accountSchema.statics.createByEmail = data => {
 
 accountSchema.statics.loginByEmail = ({ email, password }) => {
   if (!email || !password) {
-    return Promise.reject(CONST.ERROR.CONST.ERROR.WRONG_LOGIN_OR_PASSWORD)
+    return Promise.reject(CONST.ERROR.WRONG_LOGIN_OR_PASSWORD)
   }
 
   return ModelClass.findOne({
@@ -102,13 +106,7 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
       account.credentials.password
     ).then(isValid => {
       if (isValid) {
-        let now = new Date().getTime()
-        let payload = {
-          _id: account._id,
-          expire: now + config.SECURITY.VALID_DAYS * 24 * 60 * 60 * 1000
-        }
-        let token = jwt.encode(payload, config.SECURITY.JWT_SECRET)
-        return token
+        return issueToken(account)
       } else {
         return Promise.reject(CONST.ERROR.WRONG_LOGIN_OR_PASSWORD)
       }
@@ -116,32 +114,141 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
   })
 }
 
-// accountSchema.methods.setPassword = function(password) {
-//   const model = this
-//
-//   return validation
-//     .validate(
-//       { password },
-//       {
-//         password: {
-//           type: "string",
-//           required: true,
-//           allowEmpty: false,
-//           trim: true,
-//           minLength: 5
-//         }
-//       }
-//     )
-//     .then(() => {
-//       return pbkdf2.hashPassword(password).then(hash => {
-//         _.assign(model, { passwordOrToken: hash })
-//         return model.save()
-//       })
-//     })
-// }
+accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
+  if (!accessToken || !fbUserId) {
+    return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+  }
+
+  return axios
+    .get(
+      `https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${accessToken}`
+    )
+    .then(resp => {
+      if (resp && resp.status === 200) {
+        return resp.data
+      } else {
+        return Promise.reject("Cannot check facebook access token")
+      }
+    })
+    .then(data => {
+      if (
+        data &&
+        data.data &&
+        data.data.is_valid &&
+        data.data.user_id === fbUserId
+      ) {
+        //
+      } else {
+        return Promise.reject("Access token is not valid", data)
+      }
+    })
+    .then(() => {
+      return ModelClass.findOne({
+        provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
+        "credentials.fbUserId": fbUserId
+      })
+    })
+    .then(account => {
+      if (!account) {
+        return axios
+          .get(
+            `https://graph.facebook.com/2868945236465113?fields=name&access_token=${accessToken}`
+          )
+          .then(resp => {
+            if (resp && resp.status === 200 && resp.data && resp.data.name) {
+              return new User({
+                username: resp.data.name
+              })
+            } else {
+              return Promise.reject("Cannot get user name by accessToken", resp)
+            }
+          })
+          .then(user => {
+            account = new ModelClass({
+              provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
+              credentials: {
+                fbUserId
+              },
+              user: user
+            })
+            return account.save()
+          })
+      }
+      return account
+    })
+    .then(account => {
+      return issueToken(account)
+    })
+}
+
+accountSchema.statics.loginByGoogle = ({ code }) => {
+  if (!code) {
+    return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+  }
+
+  const oauth2Client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    "postmessage"
+  )
+
+  return oauth2Client
+    .getToken(code)
+    .then(resp => {
+      if (resp && resp.tokens && resp.tokens.access_token) {
+        return resp.tokens
+      } else {
+        return Promise.reject("Cannot get access token", resp)
+      }
+    })
+    .then(tokens => {
+      return oauth2Client
+        .verifyIdToken({
+          idToken: tokens.id_token,
+          audience: process.env.GOOGLE_CLIENT_ID
+        })
+        .then(vtoken => vtoken.getPayload())
+    })
+    .then(data => {
+      return ModelClass.findOne({
+        provider: CONST.ACCOUNT_PROVIDER.GOOGLE,
+        credentials: { gUserId: data.sub }
+      }).then(account => {
+        if (!account) {
+          const user = new User({
+            username: data.name
+          })
+          return user.save().then(user => {
+            const account = new ModelClass({
+              provider: CONST.ACCOUNT_PROVIDER.GOOGLE,
+              credentials: {
+                gUserId: data.sub
+              },
+              user: user
+            })
+            return account.save()
+          })
+        }
+        return account
+      })
+    })
+    .then(account => {
+      return issueToken(account)
+    })
+}
 
 accountSchema.statics.comparePassword = (candidatePassword, passwordHash) => {
   return pbkdf2.verifyPassword(candidatePassword, passwordHash)
+}
+
+function issueToken(account) {
+  let now = new Date().getTime()
+  let payload = {
+    _id: account._id,
+    expire: now + config.SECURITY.VALID_DAYS * 24 * 60 * 60 * 1000
+  }
+  let token = jwt.encode(payload, config.SECURITY.JWT_SECRET)
+  return token
 }
 
 accountSchema.plugin(mongoose_delete, {

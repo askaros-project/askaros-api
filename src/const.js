@@ -1,6 +1,8 @@
 export default {
   ACCOUNT_PROVIDER: {
-    EMAIL: "EMAIL"
+    EMAIL: "EMAIL",
+    FACEBOOK: "FACEBOOK",
+    GOOGLE: "GOOGLE"
   },
 
   ERROR: {

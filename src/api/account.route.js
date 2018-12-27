@@ -4,7 +4,7 @@ import CONST from "../const"
 import _ from "lodash"
 
 const AccountRoute = {
-  create: (req, res) => {
+  emailReg: (req, res) => {
     Account.createByEmail(req.body)
       .then(() => {
         /***/ log.info("Account have been successfully created")
@@ -15,8 +15,30 @@ const AccountRoute = {
       })
   },
 
-  login: (req, res) => {
+  emailLogin: (req, res) => {
     Account.loginByEmail(req.body)
+      .then(token => {
+        /***/ log.info("Account have been successfully logged in")
+        return res.sendSuccess({ token })
+      })
+      .catch(err => {
+        return res.sendError(err)
+      })
+  },
+
+  facebookLogin: (req, res) => {
+    Account.loginByFacebook(req.body)
+      .then(token => {
+        /***/ log.info("Account have been successfully logged in")
+        return res.sendSuccess({ token })
+      })
+      .catch(err => {
+        return res.sendError(err)
+      })
+  },
+
+  googleLogin: (req, res) => {
+    Account.loginByGoogle(req.body)
       .then(token => {
         /***/ log.info("Account have been successfully logged in")
         return res.sendSuccess({ token })
