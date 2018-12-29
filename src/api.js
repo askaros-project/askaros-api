@@ -50,6 +50,7 @@ export function API() {
   api.post("/account/email/confirmation/:id", accountRoute.emailConfirmation)
   api.post("/account/facebook/login", accountRoute.facebookLogin)
   api.post("/account/google/login", accountRoute.googleLogin)
+  api.post("/account/twitter/login", accountRoute.twitterLogin)
 
   // USER
   // api.get("/user", requireAuth, userRoute.getData)

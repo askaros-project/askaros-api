@@ -45,10 +45,12 @@
         "passport": "^0.3.2",
         "passport-jwt": "^2.2.1",
         "passport-local": "^1.0.0",
+        "query-string": "^6.2.0",
         "request-promise": "^4.2.2",
         "revalidator": "^0.3.1",
         "sanitize-html": "^1.14.1",
         "sendgrid": "^5.2.3",
+        "twitter": "^1.7.1",
         "uuid": "^3.2.1",
         "winston": "^2.3.1"
     },

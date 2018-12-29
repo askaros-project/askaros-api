@@ -3,6 +3,7 @@ import Account from "../models/account.model"
 import Confirmation from "../models/confirmation.model"
 import CONST from "../const"
 import _ from "lodash"
+import twitter from "../services/twitter"
 
 const AccountRoute = {
   getData: (req, res) => {
@@ -80,6 +81,31 @@ const AccountRoute = {
       .catch(err => {
         return res.sendError(err)
       })
+  },
+
+  twitterLogin: (req, res) => {
+    if (!req.body.oauth_token) {
+      twitter
+        .getAuthUrl()
+        .then(url => {
+          res.sendSuccess({ redirect: url })
+        })
+        .catch(err => {
+          return res.sendError(err)
+        })
+    } else {
+      twitter
+        .getUser(req.body.oauth_token, req.body.oauth_verifier)
+        .then(data => {
+          return Account.loginByTwitter(data)
+        })
+        .then(token => {
+          return res.sendSuccess({ token })
+        })
+        .catch(err => {
+          return res.sendError(err)
+        })
+    }
   }
 }
 

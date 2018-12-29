@@ -13,6 +13,8 @@ import { OAuth2Client } from "google-auth-library"
 import User from "./user.model"
 import Confirmation from "./confirmation.model"
 
+let _data
+
 mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
@@ -25,7 +27,8 @@ const accountSchema = new Schema(
       enum: [
         CONST.ACCOUNT_PROVIDER.EMAIL,
         CONST.ACCOUNT_PROVIDER.FACEBOOK,
-        CONST.ACCOUNT_PROVIDER.GOOGLE
+        CONST.ACCOUNT_PROVIDER.GOOGLE,
+        CONST.ACCOUNT_PROVIDER.TWITTER
       ],
       required: true
     },
@@ -170,7 +173,7 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
             if (resp && resp.status === 200 && resp.data && resp.data.name) {
               return new User({
                 username: resp.data.name
-              })
+              }).save()
             } else {
               return Promise.reject("Cannot get user name by accessToken", resp)
             }
@@ -243,6 +246,35 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
         }
         return account
       })
+    })
+    .then(account => {
+      return issueToken(account)
+    })
+}
+
+accountSchema.statics.loginByTwitter = ({ twUserId, username }) => {
+  return ModelClass.findOne({
+    provider: CONST.ACCOUNT_PROVIDER.TWITTER,
+    "credentials.twUserId": twUserId
+  })
+    .then(account => {
+      if (!account) {
+        return new User({
+          username: username
+        })
+          .save()
+          .then(user => {
+            account = new ModelClass({
+              provider: CONST.ACCOUNT_PROVIDER.TWITTER,
+              credentials: {
+                twUserId
+              },
+              user: user
+            })
+            return account.save()
+          })
+      }
+      return account
     })
     .then(account => {
       return issueToken(account)
