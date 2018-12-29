@@ -5,11 +5,13 @@ import mongoose from "mongoose"
 import mongoose_delete from "mongoose-delete"
 import pbkdf2 from "../services/pbkdf2"
 import validation from "../services/validation"
+import emailSender from "../services/email"
 import config from "../config"
 import jwt from "jwt-simple"
 import axios from "axios"
 import { OAuth2Client } from "google-auth-library"
 import User from "./user.model"
+import Confirmation from "./confirmation.model"
 
 mongoose.Promise = require("bluebird")
 
@@ -41,9 +43,13 @@ accountSchema.statics.createByEmail = data => {
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.EMAIL,
     "credentials.email": data.email
-  }).then(existingUser => {
-    if (existingUser) {
-      return Promise.reject(CONST.ERROR.EMAIL_ALREADY_IN_USE)
+  }).then(existingAccount => {
+    if (existingAccount) {
+      if (existingAccount.credentials.confirmed) {
+        return Promise.reject(CONST.ERROR.EMAIL_ALREADY_IN_USE)
+      } else {
+        existingAccount.remove()
+      }
     }
     return validation
       .validate(data, {
@@ -77,13 +83,15 @@ accountSchema.statics.createByEmail = data => {
           provider: CONST.ACCOUNT_PROVIDER.EMAIL,
           credentials: {
             email: data.email,
-            password: hash
+            password: hash,
+            confirmed: false
           },
           user: user
         })
         return account.save()
       })
       .then(account => {
+        sendConfirmation(account, data.email, data.username)
         return account
       })
   })
@@ -239,6 +247,25 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
 
 accountSchema.statics.comparePassword = (candidatePassword, passwordHash) => {
   return pbkdf2.verifyPassword(candidatePassword, passwordHash)
+}
+
+accountSchema.post("remove", function(doc) {
+  User.findById(doc.user).then(user => {
+    if (user) {
+      user.remove()
+    }
+  })
+  Confirmation.deleteMany({ account: doc._id })
+})
+
+function sendConfirmation(account, email, username) {
+  let confirmation = new Confirmation({
+    account: account._id,
+    email: email
+  })
+  return confirmation.save().then(conf => {
+    emailSender.sendConfirmation(email, conf._id, username)
+  })
 }
 
 function issueToken(account) {

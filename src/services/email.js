@@ -2,9 +2,8 @@ import _ from "lodash"
 import moment from "moment"
 const helper = require("sendgrid").mail
 import config from "../config"
-const from_email = new helper.Email(config.MAIL.FROM)
-const sg = require("sendgrid")(config.MAIL.SENDGRID_API_KEY)
-import CONST from "../const"
+const from_email = new helper.Email(process.env.MAIL_FROM)
+const sg = require("sendgrid")(process.env.MAIL_SENDGRID_API_KEY)
 
 export default {
   sendConfirmation: (email, confirmationId, name) => {
@@ -13,8 +12,8 @@ export default {
       path: "/v3/mail/send",
       body: {
         from: {
-          email: config.MAIL.FROM,
-          name: "Strut Bot"
+          email: process.env.MAIL_FROM,
+          name: "QApp Bot"
         },
         content: [
           {
@@ -28,7 +27,7 @@ export default {
             substitutions: {
               "{{cid}}": confirmationId,
               "{{name}}": name,
-              "{{siteurl}}": config.SITE_URL
+              "{{siteurl}}": process.env.SITE_URL
             },
             to: [
               {
@@ -37,55 +36,10 @@ export default {
               }
             ],
             reply_to: {
-              email: config.MAIL.FROM,
-              name: "Strut Bot"
+              email: process.env.MAIL_FROM,
+              name: "QApp Bot"
             },
-            subject: config.MAIL.CONFIRMATION_SUBJECT
-          }
-        ]
-      }
-    })
-
-    sg.API(request, function(error, response) {
-      //
-    })
-  },
-
-  sendPasswordRecovery: (user, key) => {
-    console.log(user, key)
-    const request = sg.emptyRequest({
-      method: "POST",
-      path: "/v3/mail/send",
-      body: {
-        from: {
-          email: config.MAIL.FROM,
-          name: "Strut Bot"
-        },
-        content: [
-          {
-            type: "text/html",
-            value:
-              '<h2>Hello, {{name}}!</h2> <a clicktracking=off href="{{siteurl}}/password-recovery/{{key}}">Click here to reset your password.</a>'
-          }
-        ],
-        personalizations: [
-          {
-            substitutions: {
-              "{{key}}": key,
-              "{{name}}": user.username,
-              "{{siteurl}}": config.SITE_URL
-            },
-            to: [
-              {
-                email: user.login,
-                name: user.username
-              }
-            ],
-            reply_to: {
-              email: config.MAIL.FROM,
-              name: "Strut Bot"
-            },
-            subject: config.MAIL.PASSWORD_RECOVERY_SUBJECT
+            subject: process.env.MAIL_CONFIRMATION_SUBJECT
           }
         ]
       }

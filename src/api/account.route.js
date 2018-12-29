@@ -1,5 +1,6 @@
 const log = require("../services/log")("account.route")
 import Account from "../models/account.model"
+import Confirmation from "../models/confirmation.model"
 import CONST from "../const"
 import _ from "lodash"
 
@@ -23,6 +24,28 @@ const AccountRoute = {
       })
       .catch(err => {
         return res.sendError(err)
+      })
+  },
+
+  emailConfirmation: (req, res) => {
+    Confirmation.findById(req.params.id)
+      .then(confirmation => {
+        if (!confirmation) {
+          return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+        }
+        return Account.findOneAndUpdate(
+          { _id: confirmation.account },
+          { $set: { "credentials.confirmed": true } }
+        )
+      })
+      .then(() => {
+        return Confirmation.findByIdAndRemove(req.params.id)
+      })
+      .then(() => {
+        return res.sendSuccess()
+      })
+      .catch(err => {
+        return res.sendError(err, 500)
       })
   },
 

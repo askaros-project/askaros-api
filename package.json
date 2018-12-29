@@ -48,6 +48,7 @@
         "request-promise": "^4.2.2",
         "revalidator": "^0.3.1",
         "sanitize-html": "^1.14.1",
+        "sendgrid": "^5.2.3",
         "uuid": "^3.2.1",
         "winston": "^2.3.1"
     },

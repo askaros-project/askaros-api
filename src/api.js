@@ -39,6 +39,7 @@ export function API() {
   // ACCOUNT
   api.post("/account/email", accountRoute.emailReg)
   api.post("/account/email/login", accountRoute.emailLogin)
+  api.post("/account/email/confirmation/:id", accountRoute.emailConfirmation)
   api.post("/account/facebook/login", accountRoute.facebookLogin)
   api.post("/account/google/login", accountRoute.googleLogin)
 
