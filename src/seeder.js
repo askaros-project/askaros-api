@@ -3,34 +3,48 @@ import _ from "lodash"
 import fetch from "node-fetch"
 import Promise from "bluebird"
 import pbkdf2 from "./services/pbkdf2"
-
+import CONST from "./const"
+import Account from "./models/account.model"
 import User from "./models/user.model"
 
-function seedUsers() {
+function seedAccounts() {
   const data = [
     {
       username: "John Smith",
-      provider: "email",
       email: "admin@qapp.io",
-      login: "admin@qapp.io",
       password: "admin123",
       isAdmin: true
     }
   ]
   return Promise.resolve()
     .then(() => {
-      return User.find({})
+      return Account.find({})
     })
-    .then(users => {
-      if (users.length) {
+    .then(accounts => {
+      if (accounts.length) {
         return Promise.resolve()
       }
       return Promise.all(
         _.map(data, d => {
-          return pbkdf2.hashPassword(d.password).then(hash => {
-            d.passwordOrToken = hash
-            const user = new User(d)
-            return user.save()
+          let user = new User({
+            username: d.username,
+            email: d.email
+          })
+          return Promise.all([
+            user.save(),
+            pbkdf2.hashPassword(d.password)
+          ]).then(([user, hash]) => {
+            let account = new Account({
+              provider: CONST.ACCOUNT_PROVIDER.EMAIL,
+              credentials: {
+                email: d.email,
+                confirmed: true,
+                password: hash
+              },
+              user: user,
+              isAdmin: d.isAdmin
+            })
+            return account.save()
           })
         })
       )
@@ -41,8 +55,8 @@ function seedAll() {
   log.info("Seeding...")
   return Promise.resolve()
     .then(() => {
-      log.info("Seeding users..")
-      return seedUsers()
+      log.info("Seeding accounts..")
+      return seedAccounts()
     })
     .then(() => {
       log.info("Seeding finished")

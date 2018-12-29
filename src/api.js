@@ -19,9 +19,16 @@ const requireAuth = passport.authenticate("jwt", {
   session: false,
   assignProperty: "account"
 })
+const requireAdmin = (req, res, next) => {
+  if (!req.account.isAdmin) {
+    return res.sendError("Forbidden", 403)
+  }
+  next()
+}
 
 import accountRoute from "./api/account.route"
 import userRoute from "./api/user.route"
+import adminRoute from "./api/admin.route"
 
 export function API() {
   const api = Router()
@@ -37,6 +44,7 @@ export function API() {
   })
 
   // ACCOUNT
+  api.get("/account", requireAuth, accountRoute.getData)
   api.post("/account/email", accountRoute.emailReg)
   api.post("/account/email/login", accountRoute.emailLogin)
   api.post("/account/email/confirmation/:id", accountRoute.emailConfirmation)
@@ -44,7 +52,10 @@ export function API() {
   api.post("/account/google/login", accountRoute.googleLogin)
 
   // USER
-  api.get("/user", requireAuth, userRoute.getData)
+  // api.get("/user", requireAuth, userRoute.getData)
+
+  // ADMIN
+  api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)
 
   return api
 }

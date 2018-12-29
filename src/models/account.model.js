@@ -29,7 +29,7 @@ const accountSchema = new Schema(
       ],
       required: true
     },
-    credentials: { type: Object, required: true },
+    credentials: { type: Object, required: true, select: false },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     createdAt: { type: Date, default: Date.now }
   },
@@ -43,58 +43,60 @@ accountSchema.statics.createByEmail = data => {
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.EMAIL,
     "credentials.email": data.email
-  }).then(existingAccount => {
-    if (existingAccount) {
-      if (existingAccount.credentials.confirmed) {
-        return Promise.reject(CONST.ERROR.EMAIL_ALREADY_IN_USE)
-      } else {
-        existingAccount.remove()
-      }
-    }
-    return validation
-      .validate(data, {
-        username: {
-          type: "string",
-          required: true,
-          allowEmpty: false,
-          trim: true
-        },
-        email: {
-          type: "string",
-          required: true,
-          allowEmpty: false,
-          trim: true,
-          format: "email"
-        },
-        password: {
-          type: "string",
-          required: true,
-          allowEmpty: false,
-          trim: true,
-          minLength: 4
-        }
-      })
-      .then(() => {
-        const user = new User({ username: data.username })
-        return Promise.all([user.save(), pbkdf2.hashPassword(data.password)])
-      })
-      .then(([user, hash]) => {
-        const account = new ModelClass({
-          provider: CONST.ACCOUNT_PROVIDER.EMAIL,
-          credentials: {
-            email: data.email,
-            password: hash,
-            confirmed: false
-          },
-          user: user
-        })
-        return account.save()
-      })
-      .then(account => {
-        sendConfirmation(account, data.email, data.username)
-        return account
-      })
   })
+    .select("+credentials")
+    .then(existingAccount => {
+      if (existingAccount) {
+        if (existingAccount.credentials.confirmed) {
+          return Promise.reject(CONST.ERROR.EMAIL_ALREADY_IN_USE)
+        } else {
+          existingAccount.remove()
+        }
+      }
+      return validation
+        .validate(data, {
+          username: {
+            type: "string",
+            required: true,
+            allowEmpty: false,
+            trim: true
+          },
+          email: {
+            type: "string",
+            required: true,
+            allowEmpty: false,
+            trim: true,
+            format: "email"
+          },
+          password: {
+            type: "string",
+            required: true,
+            allowEmpty: false,
+            trim: true,
+            minLength: 4
+          }
+        })
+        .then(() => {
+          const user = new User({ username: data.username })
+          return Promise.all([user.save(), pbkdf2.hashPassword(data.password)])
+        })
+        .then(([user, hash]) => {
+          const account = new ModelClass({
+            provider: CONST.ACCOUNT_PROVIDER.EMAIL,
+            credentials: {
+              email: data.email,
+              password: hash,
+              confirmed: false
+            },
+            user: user
+          })
+          return account.save()
+        })
+        .then(account => {
+          sendConfirmation(account, data.email, data.username)
+          return account
+        })
+    })
 }
 
 accountSchema.statics.loginByEmail = ({ email, password }) => {
@@ -105,21 +107,23 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.EMAIL,
     "credentials.email": email
-  }).then(account => {
-    if (!account) {
-      return Promise.reject(CONST.ERROR.ACCOUNT_NOT_FOUND)
-    }
-    return ModelClass.comparePassword(
-      password,
-      account.credentials.password
-    ).then(isValid => {
-      if (isValid) {
-        return issueToken(account)
-      } else {
-        return Promise.reject(CONST.ERROR.WRONG_LOGIN_OR_PASSWORD)
-      }
-    })
   })
+    .select("+credentials")
+    .then(account => {
+      if (!account) {
+        return Promise.reject(CONST.ERROR.ACCOUNT_NOT_FOUND)
+      }
+      return ModelClass.comparePassword(
+        password,
+        account.credentials.password
+      ).then(isValid => {
+        if (isValid) {
+          return issueToken(account)
+        } else {
+          return Promise.reject(CONST.ERROR.WRONG_LOGIN_OR_PASSWORD)
+        }
+      })
+    })
 }
 
 accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {

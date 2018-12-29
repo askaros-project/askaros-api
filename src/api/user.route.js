@@ -7,13 +7,13 @@ import config from "../config"
 import Promise from "bluebird"
 
 export default {
-  getData: (req, res) => {
-    User.findById(req.account.user)
-      .then(user => {
-        res.sendSuccess({ user: user })
-      })
-      .catch(err => {
-        res.sendError(err)
-      })
-  }
+	// getData: (req, res) => {
+	// 	User.findById(req.account.user)
+	// 		.then(user => {
+	// 			res.sendSuccess({ user: user, isAdmin: req.account.isAdmin })
+	// 		})
+	// 		.catch(err => {
+	// 			res.sendError(err)
+	// 		})
+	// }
 }

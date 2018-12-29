@@ -5,6 +5,17 @@ import CONST from "../const"
 import _ from "lodash"
 
 const AccountRoute = {
+  getData: (req, res) => {
+    Account.findById(req.account._id)
+      .populate("user")
+      .then(account => {
+        res.sendSuccess({ account: account })
+      })
+      .catch(err => {
+        res.sendError(err)
+      })
+  },
+
   emailReg: (req, res) => {
     Account.createByEmail(req.body)
       .then(() => {
