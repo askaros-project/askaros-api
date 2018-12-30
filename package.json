@@ -7,12 +7,11 @@
         "pm2": "pm2",
         "start": "cross-env DEBUG=*,-babel nodemon --exec babel-node ./src/index.js",
         "build:prod": "babel src --out-dir dist",
-        "start:prod": "pm2 stop pm2.prod.config.js && pm2 start pm2.prod.config.js",
-        "stop:prod": "pm2 stop pm2.prod.config.js",
+        "start:prod": "pm2 stop pm2.config.js && pm2 start pm2.config.js --env production",
+        "stop:prod": "pm2 stop pm2.config.js --env production",
         "build:stage": "babel src --out-dir dist",
-        "start:stage": "pm2 stop pm2.stage.config.js && pm2 start pm2.stage.config.js",
-        "stage": "git pull origin master && npm-run-all build:stage start:stage",
-        "prod": "git pull origin master && npm-run-all build:prod start:prod"
+        "start:stage": "pm2 stop pm2.config.js && pm2 start pm2.config.js --env stage",
+        "stop:stage": "pm2 stop pm2.config.js --env stage"
     },
     "author": "",
     "license": "ISC",

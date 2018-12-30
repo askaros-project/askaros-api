@@ -7,15 +7,13 @@ if (fs.existsSync(envPath)) {
   env(envPath)
 }
 
-let noDev = process.env.NODE_ENV === "production"
 let config = {
   //  SITE_URL: SITE_URL,
   CORS_ORIGIN: [
     /*.dev */
     /.*localhost.*/,
     /* stage */
-    /.*178\.62\.21\.7\:4400.*/,
-    /.*178\.62\.21\.7\:4402.*/
+    /.*178\.62\.21\.7\:5001.*/
   ],
   API_PREFIX: "/api/v1",
   MONGO: {
