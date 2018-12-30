@@ -8,13 +8,6 @@ if (fs.existsSync(envPath)) {
 }
 
 let config = {
-  //  SITE_URL: SITE_URL,
-  CORS_ORIGIN: [
-    /*.dev */
-    /.*localhost.*/,
-    /* stage */
-    /.*178\.62\.21\.7\:5001.*/
-  ],
   API_PREFIX: "/api/v1",
   MONGO: {
     URI: "mongodb://127.0.0.1/qapp",

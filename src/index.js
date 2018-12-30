@@ -39,7 +39,7 @@ const app = express()
 
 app.use(
 	cors({
-		origin: config.CORS_ORIGIN,
+		origin: process.env.CORS ? process.env.CORS.split(",") : [],
 		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 		credentials: true
 	})
