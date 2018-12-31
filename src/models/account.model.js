@@ -139,7 +139,9 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
 
   return axios
     .get(
-      `https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${accessToken}`
+      `https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${
+        process.env.FACEBOOK_USER_ACCESS_TOKEN
+      }`
     )
     .then(resp => {
       if (resp && resp.status === 200) {
@@ -170,7 +172,7 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
       if (!account) {
         return axios
           .get(
-            `https://graph.facebook.com/2868945236465113?fields=name&access_token=${accessToken}`
+            `https://graph.facebook.com/${fbUserId}?fields=name&access_token=${accessToken}`
           )
           .then(resp => {
             if (resp && resp.status === 200 && resp.data && resp.data.name) {
