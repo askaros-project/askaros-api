@@ -3,7 +3,7 @@ import moment from "moment"
 const helper = require("sendgrid").mail
 import config from "../config"
 const from_email = new helper.Email(process.env.MAIL_FROM)
-const sg = require("sendgrid")(process.env.MAIL_SENDGRID_API_KEY)
+const sg = require("sendgrid")(process.env.SENDGRID_API_KEY)
 
 export default {
   sendConfirmation: (email, confirmationId, name) => {
