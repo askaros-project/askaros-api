@@ -134,6 +134,9 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
     return Promise.reject(CONST.ERROR.WRONG_REQUEST)
   }
 
+  console.log("params..")
+  console.log(accessToken, fbUserId)
+
   return axios
     .get(
       `https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${accessToken}`
@@ -193,6 +196,10 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
     })
     .then(account => {
       return issueToken(account)
+    })
+    .catch(err => {
+      console.log(err)
+      return Promise.reject("Unknown error")
     })
 }
 
