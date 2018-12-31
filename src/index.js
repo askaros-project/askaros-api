@@ -16,13 +16,13 @@ import { API } from "./api"
 // ====================================================================================
 mongoose.Promise = global.Promise
 mongoose.connect(
-	config.MONGO.URI,
+	process.env.MONGODB_URI,
 	{ useMongoClient: true }
 )
 mongoose.connection.on("error", () => {
-	throw new Error(`unable to connect to database: ${config.MONGO.URI}`)
+	throw new Error(`unable to connect to database: ${process.env.MONGODB_URI}`)
 })
-if (config.MONGO.DEBUG) {
+if (process.env.NODE_ENV !== "production") {
 	mongoose.set("debug", (collectionName, method, query, doc) => {
 		debugMongo(
 			`${collectionName}.${method}`,
@@ -48,7 +48,7 @@ app.use(
 )
 
 // initialise middleware
-app.use(morgan(config.IS_PRODUCTION ? "combined" : "dev")) // logging
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev")) // logging
 app.use(bodyParser.json({ type: "*/json", limit: "9MB" }))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(process.env.API_PREFIX ? process.env.API_PREFIX : "", API())

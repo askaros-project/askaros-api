@@ -1,19 +1,17 @@
-import winston from 'winston'
-import config from '../config'
+import winston from "winston"
+import config from "../config"
 // set default log level.
-var logLevel = process.env.LOG_LEVEL || 'trace';
+var logLevel = process.env.LOG_LEVEL || "trace"
 
 // Set up logger
 var customColors = {
-  trace: 'white',
-  debug: 'green',
-  info: 'blue',
-  warn: 'yellow',
-  crit: 'red',
-  fatal: 'red'
+  trace: "white",
+  debug: "green",
+  info: "blue",
+  warn: "yellow",
+  crit: "red",
+  fatal: "red"
 }
-
-
 
 winston.addColors(customColors)
 /* LOGGER EXAMPLES
@@ -27,8 +25,7 @@ winston.addColors(customColors)
  */
 
 function log(name) {
-
-  var logger = new (winston.Logger)({
+  var logger = new winston.Logger({
     colors: customColors,
     level: logLevel,
     levels: {
@@ -40,27 +37,33 @@ function log(name) {
       trace: 5
     },
     transports: [
-      new (winston.transports.Console)({
+      new winston.transports.Console({
         colorize: true,
-        timestamp: config.IS_PRODUCTION?true:false
+        timestamp: process.env.NODE_ENV === "production"
       })
       //new (winston.transports.File)({ filename: 'somefile.log' })
     ]
-  });
+  })
 
-  var origLog = logger.log;
+  var origLog = logger.log
 
-  logger.log = function (level, ...args) {
-    let cloneArgs = args.slice(0);
+  logger.log = function(level, ...args) {
+    let cloneArgs = args.slice(0)
     if (cloneArgs[0] instanceof Error) {
       cloneArgs[0] = cloneArgs[0].stack
-      origLog.apply(logger, [level, '\x1b[36m[ '+name+' ]\x1b[0m'].concat(cloneArgs));
+      origLog.apply(
+        logger,
+        [level, "\x1b[36m[ " + name + " ]\x1b[0m"].concat(cloneArgs)
+      )
     } else {
-      origLog.apply(logger, [level, '\x1b[36m[ '+name+' ]\x1b[0m'].concat(args));
+      origLog.apply(
+        logger,
+        [level, "\x1b[36m[ " + name + " ]\x1b[0m"].concat(args)
+      )
     }
-  };
-  return logger;
+  }
+  return logger
 }
 
-export default log;
-module.exports = log;
+export default log
+module.exports = log

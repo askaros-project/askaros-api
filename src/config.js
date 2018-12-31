@@ -8,11 +8,6 @@ if (fs.existsSync(envPath)) {
 }
 
 let config = {
-  MONGO: {
-    URI: "mongodb://127.0.0.1/qapp",
-    DEBUG: true
-  },
-  IS_PRODUCTION: process.env.NODE_ENV === "production",
   PORT: process.env.PORT || 4321,
   SECURITY: {
     VALID_DAYS: 30,
