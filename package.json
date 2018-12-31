@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "npm i -g pm2 && pm2 install pm2-logrotate",
+    "postinstall": "npm run build",
     "build": "babel src --out-dir dist",
     "dev": "cross-env DEBUG=*,-babel babel-node ./src/index.js"
   },
