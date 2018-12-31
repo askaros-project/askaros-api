@@ -8,7 +8,6 @@ if (fs.existsSync(envPath)) {
 }
 
 let config = {
-  API_PREFIX: "/api/v1",
   MONGO: {
     URI: "mongodb://127.0.0.1/qapp",
     DEBUG: true

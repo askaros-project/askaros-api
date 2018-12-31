@@ -37,6 +37,8 @@ seeder.seedAll()
 // ====================================================================================
 const app = express()
 
+console.log(process.env.CORS.split(","))
+
 app.use(
 	cors({
 		origin: process.env.CORS ? process.env.CORS.split(",") : [],
@@ -49,7 +51,7 @@ app.use(
 app.use(morgan(config.IS_PRODUCTION ? "combined" : "dev")) // logging
 app.use(bodyParser.json({ type: "*/json", limit: "9MB" }))
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(config.API_PREFIX, API())
+app.use(process.env.API_PREFIX ? process.env.API_PREFIX : "", API())
 
 // SERVER SETUP
 // ====================================================================================

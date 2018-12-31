@@ -13,7 +13,7 @@ export default {
       body: {
         from: {
           email: process.env.MAIL_FROM,
-          name: "QApp Bot"
+          name: process.env.MAIL_FROM_NAME
         },
         content: [
           {
@@ -37,7 +37,7 @@ export default {
             ],
             reply_to: {
               email: process.env.MAIL_FROM,
-              name: "QApp Bot"
+              name: process.env.MAIL_FROM_NAME
             },
             subject: process.env.MAIL_CONFIRMATION_SUBJECT
           }
