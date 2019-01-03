@@ -1,7 +1,6 @@
 import _ from "lodash"
 import moment from "moment"
 const helper = require("sendgrid").mail
-import config from "../config"
 const from_email = new helper.Email(process.env.MAIL_FROM)
 const sg = require("sendgrid")(process.env.SENDGRID_API_KEY)
 

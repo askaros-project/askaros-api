@@ -1,20 +1,13 @@
-const log = require("./services/log")("api")
-
-import _ from "lodash"
-import path from "path"
-import config from "./config"
-import passport from "passport"
 import { Router } from "express"
-import CONST from "./const"
+import passport from "passport"
+import { jwtLogin } from "./services/passport"
+import request from "./services/request"
 import response from "./services/response"
-import express from "express"
-import Promise from "bluebird"
-import Account from "./models/account.model"
-import User from "./models/user.model"
-const successResp = response.successResp(log)
-const errorResp = response.errorResp(log)
+import accountRoute from "./api/account.route"
+import userRoute from "./api/user.route"
+import adminRoute from "./api/admin.route"
 
-require("./services/passport")
+passport.use(jwtLogin)
 const requireAuth = passport.authenticate("jwt", {
   session: false,
   assignProperty: "account"
@@ -26,22 +19,11 @@ const requireAdmin = (req, res, next) => {
   next()
 }
 
-import accountRoute from "./api/account.route"
-import userRoute from "./api/user.route"
-import adminRoute from "./api/admin.route"
-
 export function API() {
   const api = Router()
 
-  api.use(function(req, res, next) {
-    res.sendSuccess = (data, status) => {
-      return successResp(res, status)(data)
-    }
-    res.sendError = (err, status) => {
-      return errorResp(res, status)(err)
-    }
-    next()
-  })
+  api.use(request)
+  api.use(response)
 
   // ACCOUNT
   api.get("/account", requireAuth, accountRoute.getData)
@@ -53,7 +35,6 @@ export function API() {
   api.post("/account/twitter/login", accountRoute.twitterLogin)
 
   // USER
-  // api.get("/user", requireAuth, userRoute.getData)
 
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)

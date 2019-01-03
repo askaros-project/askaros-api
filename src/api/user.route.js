@@ -1,9 +1,7 @@
-const log = require("../services/log")("user.route")
 import _ from "lodash"
 import User from "../models/user.model"
 import CONST from "../const"
 import mongoose from "mongoose"
-import config from "../config"
 import Promise from "bluebird"
 
 export default {

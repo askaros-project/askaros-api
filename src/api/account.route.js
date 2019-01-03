@@ -1,8 +1,8 @@
-const log = require("../services/log")("account.route")
 import Account from "../models/account.model"
 import Confirmation from "../models/confirmation.model"
 import CONST from "../const"
 import _ from "lodash"
+import facebook from "../services/facebook"
 import twitter from "../services/twitter"
 
 const AccountRoute = {
@@ -20,7 +20,6 @@ const AccountRoute = {
   emailReg: (req, res) => {
     Account.createByEmail(req.body)
       .then(() => {
-        /***/ log.info("Account have been successfully created")
         return res.sendSuccess()
       })
       .catch(err => {
@@ -31,7 +30,6 @@ const AccountRoute = {
   emailLogin: (req, res) => {
     Account.loginByEmail(req.body)
       .then(token => {
-        /***/ log.info("Account have been successfully logged in")
         return res.sendSuccess({ token })
       })
       .catch(err => {
@@ -62,9 +60,13 @@ const AccountRoute = {
   },
 
   facebookLogin: (req, res) => {
-    Account.loginByFacebook(req.body)
+    const { fbUserId, accessToken } = req.body
+    facebook
+      .getUser(fbUserId, accessToken)
+      .then(userInfo => {
+        return Account.loginByFacebook(fbUserId, userInfo)
+      })
       .then(token => {
-        /***/ log.info("Account have been successfully logged in")
         return res.sendSuccess({ token })
       })
       .catch(err => {
@@ -75,7 +77,6 @@ const AccountRoute = {
   googleLogin: (req, res) => {
     Account.loginByGoogle(req.body)
       .then(token => {
-        /***/ log.info("Account have been successfully logged in")
         return res.sendSuccess({ token })
       })
       .catch(err => {

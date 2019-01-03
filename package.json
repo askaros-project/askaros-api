@@ -7,7 +7,7 @@
     "preinstall": "npm i -g pm2 && pm2 install pm2-logrotate",
     "postinstall": "npm run build",
     "build": "babel src --out-dir dist",
-    "dev": "cross-env DEBUG=*,-babel babel-node ./src/index.js"
+    "dev": "cross-env DEBUG=request,response nodemon --exec babel-node ./src/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +21,7 @@
     "cross-env": "^3.1.4",
     "crypto": "^1.0.1",
     "debug": "^2.6.0",
+    "dotenv": "^6.2.0",
     "ensureDir": "^1.0.6",
     "express": "^4.14.1",
     "google-auth-library": "^2.0.2",
@@ -34,7 +35,6 @@
     "mongoose-delete": "^0.3.4",
     "mongoose-sequence": "^4.0.1",
     "morgan": "^1.8.0",
-    "node-env-file": "^0.1.8",
     "node-fetch": "^1.7.3",
     "npm-run-all": "^4.1.2",
     "passport": "^0.3.2",

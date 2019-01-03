@@ -6,14 +6,10 @@ import mongoose_delete from "mongoose-delete"
 import pbkdf2 from "../services/pbkdf2"
 import validation from "../services/validation"
 import emailSender from "../services/email"
-import config from "../config"
 import jwt from "jwt-simple"
-import axios from "axios"
 import { OAuth2Client } from "google-auth-library"
 import User from "./user.model"
 import Confirmation from "./confirmation.model"
-
-let _data
 
 mongoose.Promise = require("bluebird")
 
@@ -129,60 +125,20 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
     })
 }
 
-accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
-  if (!accessToken || !fbUserId) {
+accountSchema.statics.loginByFacebook = (fbUserId, { name }) => {
+  if (!fbUserId || !name) {
     return Promise.reject(CONST.ERROR.WRONG_REQUEST)
   }
-
-  console.log("params..")
-  console.log(accessToken, fbUserId)
-
-  return axios
-    .get(
-      `https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${
-        process.env.FACEBOOK_USER_ACCESS_TOKEN
-      }`
-    )
-    .then(resp => {
-      if (resp && resp.status === 200) {
-        return resp.data
-      } else {
-        return Promise.reject("Cannot check facebook access token")
-      }
-    })
-    .then(data => {
-      if (
-        data &&
-        data.data &&
-        data.data.is_valid &&
-        data.data.user_id === fbUserId
-      ) {
-        //
-      } else {
-        return Promise.reject("Access token is not valid", data)
-      }
-    })
-    .then(() => {
-      return ModelClass.findOne({
-        provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
-        "credentials.fbUserId": fbUserId
-      })
-    })
+  return ModelClass.findOne({
+    provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
+    "credentials.fbUserId": fbUserId
+  })
     .then(account => {
       if (!account) {
-        return axios
-          .get(
-            `https://graph.facebook.com/${fbUserId}?fields=name&access_token=${accessToken}`
-          )
-          .then(resp => {
-            if (resp && resp.status === 200 && resp.data && resp.data.name) {
-              return new User({
-                username: resp.data.name
-              }).save()
-            } else {
-              return Promise.reject("Cannot get user name by accessToken", resp)
-            }
-          })
+        return new User({
+          username: name
+        })
+          .save()
           .then(user => {
             account = new ModelClass({
               provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
@@ -200,8 +156,7 @@ accountSchema.statics.loginByFacebook = ({ accessToken, fbUserId }) => {
       return issueToken(account)
     })
     .catch(err => {
-      console.log(err)
-      return Promise.reject("Unknown error")
+      return Promise.reject(err)
     })
 }
 
@@ -317,9 +272,9 @@ function issueToken(account) {
   let now = new Date().getTime()
   let payload = {
     _id: account._id,
-    expire: now + config.SECURITY.VALID_DAYS * 24 * 60 * 60 * 1000
+    expire: now + process.env.VALID_DAYS * 24 * 60 * 60 * 1000
   }
-  let token = jwt.encode(payload, config.SECURITY.JWT_SECRET)
+  let token = jwt.encode(payload, process.env.JWT_SECRET)
   return token
 }
 

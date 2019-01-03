@@ -1,48 +1,41 @@
 import CONST from "../const"
 import _ from "lodash"
+const debug = require("debug")("response")
 const errors = Object.keys(CONST.ERROR)
 
-const errorResp = log => {
-  return (res, status) => {
-    status = status || 500
-    return err => {
-      log.crit(err)
-
-      if (err instanceof Error) {
-        err = JSON.stringify(err, ["message", "details"])
-      }
-
-      if (_.indexOf(errors, err) !== -1) {
-        return res
-          .status(status)
-          .json({ success: false, error: { message: err } })
-      } else if (
-        typeof err == "object" &&
-        _.indexOf(errors, err.message) !== -1
-      ) {
-        return res.status(status).json({ success: false, error: err })
-      } else {
-        return res
-          .status(status)
-          .json({
-            success: false,
-            error: { message: CONST.ERROR.UNKNOWN_ERROR, details: err }
-          })
-      }
+const errorResp = (res, status) => {
+  status = status || 500
+  return err => {
+    /***/ debug("Error %o", err)
+    if (typeof err === "string" && _.indexOf(errors, err) !== -1) {
+      return res.status(status).json({ success: false, error: { type: err } })
+    } else if (typeof err === "object" && _.indexOf(errors, err.type) !== -1) {
+      return res.status(status).json({ success: false, error: err })
+    } else {
+      return res.status(status).json({
+        success: false,
+        error: { type: CONST.ERROR.INTERNAL_ERROR }
+      })
     }
   }
 }
 
-const successResp = log => {
-  return (res, status) => {
-    status = status || 200
-    return (data = {}) => {
-      return res.status(status).json(_.assign({ success: true }, data))
-    }
+const successResp = (res, status) => {
+  status = status || 200
+  return (data = {}) => {
+    /***/ debug("Success %o", data)
+    return res.status(status).json(_.assign({ success: true }, data))
   }
 }
 
-export default {
-  errorResp,
-  successResp
+const responseMiddleware = (req, res, next) => {
+  res.sendSuccess = (data, status) => {
+    return successResp(res, status)(data)
+  }
+  res.sendError = (err, status) => {
+    return errorResp(res, status)(err)
+  }
+  next()
 }
+
+export default responseMiddleware

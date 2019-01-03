@@ -1,5 +1,4 @@
 import winston from "winston"
-import config from "../config"
 // set default log level.
 var logLevel = process.env.LOG_LEVEL || "trace"
 

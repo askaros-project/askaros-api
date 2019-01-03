@@ -1,22 +1,18 @@
-const log = require("./log")("passport")
-
-import passport from "passport"
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt"
-import LocalStrategy from "passport-local"
-import config from "../config"
-import * as _ from "lodash"
 import Account from "../models/account.model"
+
+require("dotenv").config()
 
 // Setup options for JWT strategy
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeader(),
-  secretOrKey: config.SECURITY.JWT_SECRET
+  secretOrKey: process.env.JWT_SECRET
 }
 
 // Create JWT strategy
 // payload: decoded jwt token
 // done: callback function
-const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
+export const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
   Account.findById(payload._id)
     .select("_id provider user isAdmin createdAt")
     .lean()
@@ -33,6 +29,3 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
       done(err, false)
     })
 })
-
-// Tell passport to use strategy
-passport.use(jwtLogin)

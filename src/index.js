@@ -1,7 +1,8 @@
+require("dotenv").config()
 const log = require("./services/log")("index")
 const debugMongo = require("debug")("mongo")
+
 import cors from "cors"
-import config from "./config"
 import express from "express"
 import http from "http"
 import path from "path"
@@ -37,8 +38,6 @@ seeder.seedAll()
 // ====================================================================================
 const app = express()
 
-console.log(process.env.CORS.split(","))
-
 app.use(
 	cors({
 		origin: process.env.CORS ? process.env.CORS.split(",") : [],
@@ -55,7 +54,7 @@ app.use(process.env.API_PREFIX ? process.env.API_PREFIX : "", API())
 
 // SERVER SETUP
 // ====================================================================================
-const port = config.PORT
+const port = process.env.PORT
 const server = http.createServer(app)
 
 server.listen(port)
