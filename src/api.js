@@ -6,6 +6,7 @@ import response from "./services/response"
 import accountRoute from "./api/account.route"
 import userRoute from "./api/user.route"
 import questionRoute from "./api/question.route"
+import activityRoute from "./api/activity.route"
 import adminRoute from "./api/admin.route"
 
 passport.use(jwtLogin)
@@ -39,6 +40,10 @@ export function API() {
 
   // QUESTIONS
   api.post("/questions", requireAuth, questionRoute.create)
+
+  // ACTIVITY
+  api.get("/activity", requireAuth, activityRoute.getItems)
+  api.get("/activity/count", requireAuth, activityRoute.getCount)
 
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)

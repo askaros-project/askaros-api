@@ -1,5 +1,6 @@
 import CONST from "../const"
 import Question from "../models/question.model"
+import Activity from "../models/activity.model"
 import Promise from "bluebird"
 
 export default {
@@ -15,7 +16,13 @@ export default {
 		question
 			.save()
 			.then(question => {
-				res.sendSuccess({ question })
+				return Activity.push({
+					type: CONST.ACTIVITY_TYPE.QUESTION_CREATED,
+					owner: req.account.user,
+					question: question
+				}).then(() => {
+					res.sendSuccess({ question })
+				})
 			})
 			.catch(err => {
 				res.sendError(err)
