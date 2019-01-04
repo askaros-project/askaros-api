@@ -5,6 +5,7 @@ import request from "./services/request"
 import response from "./services/response"
 import accountRoute from "./api/account.route"
 import userRoute from "./api/user.route"
+import questionRoute from "./api/question.route"
 import adminRoute from "./api/admin.route"
 
 passport.use(jwtLogin)
@@ -35,6 +36,9 @@ export function API() {
   api.post("/account/twitter/login", accountRoute.twitterLogin)
 
   // USER
+
+  // QUESTIONS
+  api.post("/questions", requireAuth, questionRoute.create)
 
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)

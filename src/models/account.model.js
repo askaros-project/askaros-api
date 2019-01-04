@@ -272,7 +272,7 @@ function issueToken(account) {
   let now = new Date().getTime()
   let payload = {
     _id: account._id,
-    expire: now + process.env.VALID_DAYS * 24 * 60 * 60 * 1000
+    expire: now + process.env.JWT_VALID_DAYS * 24 * 60 * 60 * 1000
   }
   let token = jwt.encode(payload, process.env.JWT_SECRET)
   return token
