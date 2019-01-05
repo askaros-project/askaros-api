@@ -23,5 +23,10 @@ export default {
 
   ACTIVITY_TYPE: {
     QUESTION_CREATED: "QUESTION_CREATED"
+  },
+
+  ANSWER: {
+    YES: 1,
+    NO: 2
   }
 }

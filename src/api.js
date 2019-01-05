@@ -39,6 +39,7 @@ export function API() {
   // USER
 
   // QUESTIONS
+  api.get("/questions/:uri", questionRoute.getByUri)
   api.post("/questions", requireAuth, questionRoute.create)
 
   // ACTIVITY

@@ -1,4 +1,5 @@
 import _ from "lodash"
+import CONST from "../const"
 import mongoose from "mongoose"
 import mongoose_delete from "mongoose-delete"
 mongoose.Promise = require("bluebird")
@@ -10,6 +11,11 @@ const questionSchema = new Schema({
 	title: { type: String, required: true },
 	uri: { type: String, required: true },
 	keywords: { type: [String], default: [], index: true },
+	answers: {
+		type: [{ type: Schema.Types.ObjectId, ref: "Answer" }],
+		default: [],
+		select: false
+	},
 	createdAt: { type: Date, default: Date.now }
 })
 
