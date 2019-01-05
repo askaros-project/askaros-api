@@ -8,13 +8,11 @@ export default {
 		if (!req.body.title) {
 			return Promise.reject(CONST.ERROR.WRONG_REQUEST)
 		}
-		let question = new Question({
+		Question.createQuestion({
 			owner: req.account.user,
 			title: req.body.title,
 			keywords: req.body.keywords || []
 		})
-		question
-			.save()
 			.then(question => {
 				return Activity.push({
 					type: CONST.ACTIVITY_TYPE.QUESTION_CREATED,

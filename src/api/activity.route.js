@@ -17,6 +17,7 @@ export default {
 	getItems: (req, res) => {
 		Activity.find({ owner: req.account.user })
 			.populate({ path: "question", options: { lean: true } })
+			.sort({ createdAt: -1 })
 			.lean()
 			.then(items => {
 				return Activity.updateMany(
