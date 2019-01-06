@@ -18,7 +18,10 @@ export default {
     WRONG_REQUEST: "WRONG_REQUEST",
     UNKNOWN_ERROR: "UNKNOWN_ERROR",
     VALIDATION_ERROR: "VALIDATION_ERROR",
-    NOT_FOUND: "NOT_FOUND"
+    NOT_FOUND: "NOT_FOUND",
+
+    ALREADY_VOTED: "ALREADY_VOTED",
+    ALREADY_TAGED: "ALREADY_TAGED"
   },
 
   ACTIVITY_TYPE: {
@@ -28,5 +31,15 @@ export default {
   ANSWER: {
     YES: 1,
     NO: 2
+  },
+
+  RTAG: {
+    UNEXPECTED: 1,
+    CHANGE_IN_FUTURE: 2,
+    UNFAIR: 3,
+    NOT_WHOLE: 4,
+    PRETTY_MUCH_TRUE: 5,
+    WEIRD: 6,
+    EXPECTED: 7
   }
 }

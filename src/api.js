@@ -41,6 +41,8 @@ export function API() {
   // QUESTIONS
   api.get("/questions/:uri", questionRoute.getByUri)
   api.post("/questions", requireAuth, questionRoute.create)
+  api.post("/questions/:id/vote", requireAuth, questionRoute.vote)
+  api.post("/questions/:id/rtag", requireAuth, questionRoute.rtag)
 
   // ACTIVITY
   api.get("/activity", requireAuth, activityRoute.getItems)

@@ -6,18 +6,28 @@ mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
 
-const questionSchema = new Schema({
-	owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-	title: { type: String, required: true },
-	uri: { type: String, required: true },
-	keywords: { type: [String], default: [], index: true },
-	answers: {
-		type: [{ type: Schema.Types.ObjectId, ref: "Answer" }],
-		default: [],
-		select: false
+const questionSchema = new Schema(
+	{
+		owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+		title: { type: String, required: true },
+		uri: { type: String, required: true },
+		keywords: { type: [String], default: [], index: true },
+		answers: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Answer" }],
+			default: [],
+			select: false
+		},
+		rtags: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Rtag" }],
+			default: [],
+			select: false
+		},
+		createdAt: { type: Date, default: Date.now }
 	},
-	createdAt: { type: Date, default: Date.now }
-})
+	{
+		usePushEach: true
+	}
+)
 
 questionSchema.statics.createQuestion = ({
 	owner,
