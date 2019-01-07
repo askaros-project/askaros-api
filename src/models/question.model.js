@@ -17,8 +17,8 @@ const questionSchema = new Schema(
 			default: [],
 			select: false
 		},
-		rtags: {
-			type: [{ type: Schema.Types.ObjectId, ref: "Rtag" }],
+		tags: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
 			default: [],
 			select: false
 		},

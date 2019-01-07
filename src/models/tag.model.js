@@ -6,28 +6,28 @@ mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
 
-const rtagSchema = new Schema({
+const tagSchema = new Schema({
 	owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
 	question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
 	code: {
 		type: Number,
 		enum: [
-			CONST.RTAG.UNEXPECTED,
-			CONST.RTAG.CHANGE_IN_FUTURE,
-			CONST.RTAG.UNFAIR,
-			CONST.RTAG.NOT_WHOLE,
-			CONST.RTAG.PRETTY_MUCH_TRUE,
-			CONST.RTAG.WEIRD,
-			CONST.RTAG.EXPECTED
+			CONST.TAG.UNEXPECTED,
+			CONST.TAG.CHANGE_IN_FUTURE,
+			CONST.TAG.UNFAIR,
+			CONST.TAG.NOT_WHOLE,
+			CONST.TAG.PRETTY_MUCH_TRUE,
+			CONST.TAG.WEIRD,
+			CONST.TAG.EXPECTED
 		],
 		required: true
 	},
 	createdAt: { type: Date, default: Date.now }
 })
 
-rtagSchema.plugin(mongoose_delete, {
+tagSchema.plugin(mongoose_delete, {
 	deletedAt: true,
 	overrideMethods: true
 })
-const ModelClass = mongoose.model("Rtag", rtagSchema)
+const ModelClass = mongoose.model("Tag", tagSchema)
 export default ModelClass

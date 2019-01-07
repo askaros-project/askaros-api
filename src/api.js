@@ -40,9 +40,10 @@ export function API() {
 
   // QUESTIONS
   api.get("/questions/:uri", questionRoute.getByUri)
+  api.get("/questions/collection/:type", questionRoute.getCollection)
   api.post("/questions", requireAuth, questionRoute.create)
   api.post("/questions/:id/vote", requireAuth, questionRoute.vote)
-  api.post("/questions/:id/rtag", requireAuth, questionRoute.rtag)
+  api.post("/questions/:id/tag", requireAuth, questionRoute.tag)
 
   // ACTIVITY
   api.get("/activity", requireAuth, activityRoute.getItems)

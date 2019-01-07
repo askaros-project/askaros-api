@@ -3109,6 +3109,18 @@ mongoose-delete@^0.3.4:
   resolved "https://registry.yarnpkg.com/mongoose-delete/-/mongoose-delete-0.3.4.tgz#163044774a86fe503ec595bb2211f47618362f85"
   integrity sha1-FjBEd0qG/lA+xZW7IhH0dhg2L4U=
 
+mongoose-query-random@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/mongoose-query-random/-/mongoose-query-random-1.0.1.tgz#90a6bc65a270d3b66b31958ec6db578685554694"
+  integrity sha1-kKa8ZaJw07ZrMZWOxttXhoVVRpQ=
+  dependencies:
+    random-int-array "^1.0.0"
+
+mongoose-random@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/mongoose-random/-/mongoose-random-0.1.1.tgz#9ab163f11d4644f2f1b0562b2ebe94b05b201f7a"
+  integrity sha1-mrFj8R1GRPLxsFYrLr6UsFsgH3o=
+
 mongoose-sequence@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/mongoose-sequence/-/mongoose-sequence-4.0.1.tgz#831ddd66ef96abf008a89413ea6d25837dfacc55"
@@ -3717,6 +3729,11 @@ query-string@^6.2.0:
   dependencies:
     decode-uri-component "^0.2.0"
     strict-uri-encode "^2.0.0"
+
+random-int-array@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/random-int-array/-/random-int-array-1.0.0.tgz#1d5bcdaeef1387afe06946af6bfb0451b9de3039"
+  integrity sha1-HVvNru8Th6/gaUava/sEUbneMDk=
 
 randomatic@^1.1.3:
   version "1.1.7"
