@@ -6,14 +6,11 @@ mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
 
-const userSchema = new Schema(
-  {
-    username: { type: String, required: true },
-    location: { type: String, required: false },
-    descr: { type: String, required: false }
-  },
-  { usePushEach: true }
-)
+const userSchema = new Schema({
+	username: { type: String, required: true },
+	location: { type: String, required: false },
+	descr: { type: String, required: false }
+})
 
 userSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: true })
 const ModelClass = mongoose.model("User", userSchema)

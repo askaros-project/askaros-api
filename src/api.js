@@ -37,6 +37,7 @@ export function API() {
   api.post("/account/twitter/login", accountRoute.twitterLogin)
 
   // USER
+  api.put("/user", requireAuth, userRoute.update)
 
   // QUESTIONS
   api.get("/questions/:uri", questionRoute.getByUri)

@@ -5,13 +5,22 @@ import mongoose from "mongoose"
 import Promise from "bluebird"
 
 export default {
-	// getData: (req, res) => {
-	// 	User.findById(req.account.user)
-	// 		.then(user => {
-	// 			res.sendSuccess({ user: user, isAdmin: req.account.isAdmin })
-	// 		})
-	// 		.catch(err => {
-	// 			res.sendError(err)
-	// 		})
-	// }
+	update: (req, res) => {
+		if (!req.body.username) {
+			return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+		}
+		User.findById(req.account.user)
+			.then(user => {
+				user.username = req.body.username
+				user.location = req.body.location
+				user.descr = req.body.descr
+				return user.save()
+			})
+			.then(user => {
+				res.sendSuccess({ user: user })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	}
 }
