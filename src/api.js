@@ -10,6 +10,19 @@ import activityRoute from "./api/activity.route"
 import adminRoute from "./api/admin.route"
 
 passport.use(jwtLogin)
+const fillAuth = (req, res, next) => {
+  passport.authenticate(
+    "jwt",
+    {
+      session: false,
+      assignProperty: "account"
+    },
+    (err, account) => {
+      req.account = account
+      next()
+    }
+  )(req, res, next)
+}
 const requireAuth = passport.authenticate("jwt", {
   session: false,
   assignProperty: "account"
@@ -40,11 +53,12 @@ export function API() {
   api.put("/user", requireAuth, userRoute.update)
 
   // QUESTIONS
-  api.get("/questions/:uri", questionRoute.getByUri)
-  api.get("/questions/collection/:type", questionRoute.getCollection)
+  api.get("/questions/:uri", fillAuth, questionRoute.getByUri)
+  api.get("/questions/collection/:type", fillAuth, questionRoute.getCollection)
   api.post("/questions", requireAuth, questionRoute.create)
   api.post("/questions/:id/vote", requireAuth, questionRoute.vote)
   api.post("/questions/:id/tag", requireAuth, questionRoute.tag)
+  api.post("/questions/:id/mark", requireAuth, questionRoute.mark)
 
   // ACTIVITY
   api.get("/activity", requireAuth, activityRoute.getItems)
@@ -52,6 +66,7 @@ export function API() {
 
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)
+  api.get("/admin/questions", requireAuth, requireAdmin, adminRoute.getQuestns)
 
   return api
 }

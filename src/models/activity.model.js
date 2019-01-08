@@ -6,13 +6,13 @@ mongoose.Promise = require("bluebird")
 const Schema = mongoose.Schema
 const {
 	QUESTION,
-	ANSWER,
+	VOTE,
 	TAG,
 	COMMENT,
-	SOMEONE_ANSWER,
+	SOMEONE_VOTE,
 	SOMEONE_TAG,
 	SOMEONE_COMMENT,
-	OTHERS_ANSWER_AS_WELL
+	OTHERS_VOTE_AS_WELL
 } = CONST.ACTIVITY_TYPE
 
 const activitySchema = new Schema({
@@ -20,13 +20,13 @@ const activitySchema = new Schema({
 		type: String,
 		enum: [
 			QUESTION,
-			ANSWER,
+			VOTE,
 			TAG,
 			COMMENT,
-			SOMEONE_ANSWER,
+			SOMEONE_VOTE,
 			SOMEONE_TAG,
 			SOMEONE_COMMENT,
-			OTHERS_ANSWER_AS_WELL
+			OTHERS_VOTE_AS_WELL
 		],
 		required: true
 	},
@@ -53,9 +53,9 @@ activitySchema.statics.push = (
 				owner: question.owner,
 				question: question
 			}).save()
-		} else if (type === ANSWER && !question.owner.equals(owner)) {
+		} else if (type === VOTE && !question.owner.equals(owner)) {
 			return new ModelClass({
-				type: SOMEONE_ANSWER,
+				type: SOMEONE_VOTE,
 				owner: question.owner,
 				question: question
 			}).save()

@@ -7,7 +7,7 @@ import Promise from "bluebird"
 export default {
 	update: (req, res) => {
 		if (!req.body.username) {
-			return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		User.findById(req.account.user)
 			.then(user => {

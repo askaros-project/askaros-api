@@ -12,13 +12,18 @@ const questionSchema = new Schema(
 		title: { type: String, required: true },
 		uri: { type: String, required: true },
 		keywords: { type: [String], default: [], index: true },
-		answers: {
-			type: [{ type: Schema.Types.ObjectId, ref: "Answer" }],
+		votes: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Vote" }],
 			default: [],
 			select: false
 		},
 		tags: {
 			type: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
+			default: [],
+			select: false
+		},
+		marks: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Mark" }],
 			default: [],
 			select: false
 		},

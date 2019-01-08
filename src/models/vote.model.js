@@ -6,20 +6,20 @@ mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
 
-const answerSchema = new Schema({
+const voteSchema = new Schema({
 	owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
 	question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
 	code: {
 		type: Number,
-		enum: [CONST.ANSWER.YES, CONST.ANSWER.NO],
+		enum: [CONST.VOTE.YES, CONST.VOTE.NO],
 		required: true
 	},
 	createdAt: { type: Date, default: Date.now }
 })
 
-answerSchema.plugin(mongoose_delete, {
+voteSchema.plugin(mongoose_delete, {
 	deletedAt: true,
 	overrideMethods: true
 })
-const ModelClass = mongoose.model("Answer", answerSchema)
+const ModelClass = mongoose.model("Vote", voteSchema)
 export default ModelClass
