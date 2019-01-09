@@ -1,1 +1,1 @@
-web: node ./dist/index.js
+web: DEBUG=request,response node ./dist/index.js
