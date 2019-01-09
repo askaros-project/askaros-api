@@ -14,25 +14,12 @@ export default {
       page = 1,
       pageSize = 10
 
-    // if (req.query.status) {
-    //   search.status = req.query.status;
-    // }
-    // if (req.query.name) {
-    //   search['personalInfo.fullName'] = {'$regex' : new RegExp(req.query.name, 'i')}
-    // }
-    // if (req.query.email) {
-    //   search['personalInfo.email'] = {'$regex' : new RegExp(req.query.email, 'i')}
-    // }
-    // if (req.query.phone) {
-    //   search['personalInfo.phone'] = {'$regex' : new RegExp(req.query.phone, 'i')}
-    // }
-    // if (req.query.addons) {
-    //   search['addons'] = req.query.addons
-    // }
+    if (req.query.sortField) {
+      sort = {
+        [req.query.sortField]: req.query.sortOrder === "descend" ? 1 : -1
+      }
+    }
 
-    // if (req.query.sort) {
-    //   sort = {[req.query.sort] : req.query.sortOrder || -1}
-    // }
     if (typeof req.query.page !== "undefined") {
       page = parseInt(req.query.page) || page
     }
@@ -51,7 +38,6 @@ export default {
         res.sendSuccess({ accounts: data[0], total: data[1] })
       })
       .catch(err => {
-        /***/ log.warn(err)
         return res.sendError()
       })
   },
@@ -62,25 +48,16 @@ export default {
       page = 1,
       pageSize = 10
 
-    // if (req.query.status) {
-    //   search.status = req.query.status;
-    // }
-    // if (req.query.name) {
-    //   search['personalInfo.fullName'] = {'$regex' : new RegExp(req.query.name, 'i')}
-    // }
-    // if (req.query.email) {
-    //   search['personalInfo.email'] = {'$regex' : new RegExp(req.query.email, 'i')}
-    // }
-    // if (req.query.phone) {
-    //   search['personalInfo.phone'] = {'$regex' : new RegExp(req.query.phone, 'i')}
-    // }
-    // if (req.query.addons) {
-    //   search['addons'] = req.query.addons
-    // }
+    if (req.query.sortField) {
+      sort = {
+        [req.query.sortField]: req.query.sortOrder === "descend" ? 1 : -1
+      }
+    }
 
-    // if (req.query.sort) {
-    //   sort = {[req.query.sort] : req.query.sortOrder || -1}
-    // }
+    if (req.query.searchText) {
+      search["$text"] = { $search: req.query.searchText }
+    }
+
     if (typeof req.query.page !== "undefined") {
       page = parseInt(req.query.page) || page
     }
@@ -89,9 +66,11 @@ export default {
     }
     Promise.all([
       Question.find(search)
+        .populate("owner")
         .populate("votes")
         .populate("tags")
         .populate("marks")
+        .select("+counters")
         .sort(sort)
         .limit(pageSize)
         .skip(pageSize * (page - 1)),
@@ -101,8 +80,19 @@ export default {
         res.sendSuccess({ questions: data[0], total: data[1] })
       })
       .catch(err => {
-        /***/ log.warn(err)
         return res.sendError()
+      })
+  },
+
+  deleteQuestion: (req, res) => {
+    Question.findById(req.params.id)
+      .remove()
+      .exec()
+      .then(() => {
+        res.sendSuccess()
+      })
+      .catch(err => {
+        res.sendError()
       })
   }
 }

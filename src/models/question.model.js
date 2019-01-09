@@ -6,6 +6,15 @@ mongoose.Promise = require("bluebird")
 
 const Schema = mongoose.Schema
 
+const countersSchema = new Schema(
+	{
+		votes: { type: Number, default: 0 },
+		tags: { type: Number, default: 0 },
+		spam_mark: { type: Number, default: 0 }
+	},
+	{ _id: false }
+)
+
 const questionSchema = new Schema(
 	{
 		owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -27,12 +36,19 @@ const questionSchema = new Schema(
 			default: [],
 			select: false
 		},
+		counters: {
+			type: countersSchema,
+			select: false,
+			default: { votes: 0, tags: 0, spam_mark: 0 }
+		},
 		createdAt: { type: Date, default: Date.now }
 	},
 	{
 		usePushEach: true
 	}
 )
+
+questionSchema.index({ title: "text", keywords: "text" })
 
 questionSchema.statics.createQuestion = ({
 	owner,

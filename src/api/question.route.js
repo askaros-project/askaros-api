@@ -162,6 +162,7 @@ export default {
 		}
 		Question.findById(req.params.id)
 			.populate({ path: "votes" })
+			.select("+counters")
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
@@ -183,6 +184,7 @@ export default {
 			})
 			.then(([q, vote]) => {
 				q.votes.push(vote)
+				q.counters.votes = q.counters.votes + 1
 				return q.save()
 			})
 			.then(q => {
@@ -216,6 +218,7 @@ export default {
 		}
 		Question.findById(req.params.id)
 			.populate({ path: "tags" })
+			.select("+counters")
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
@@ -237,6 +240,7 @@ export default {
 			})
 			.then(([q, tag]) => {
 				q.tags.push(tag)
+				q.counters.tags = q.counters.tags + 1
 				return q.save()
 			})
 			.then(q => {
@@ -270,6 +274,7 @@ export default {
 		}
 		Question.findById(req.params.id)
 			.populate({ path: "marks", options: { lean: true } })
+			.select("+counters")
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
@@ -291,6 +296,9 @@ export default {
 			})
 			.then(([q, mark]) => {
 				q.marks.push(mark)
+				if (req.body.code === CONST.MARK.SPAM) {
+					q.counters.spam_mark = q.counters.spam_mark + 1
+				}
 				return q.save()
 			})
 			.then(question => {

@@ -67,6 +67,12 @@ export function API() {
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)
   api.get("/admin/questions", requireAuth, requireAdmin, adminRoute.getQuestns)
+  api.delete(
+    "/admin/questions/:id",
+    requireAuth,
+    requireAdmin,
+    adminRoute.deleteQuestion
+  )
 
   return api
 }
