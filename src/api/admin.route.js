@@ -55,7 +55,17 @@ export default {
     }
 
     if (req.query.searchText) {
-      search["$text"] = { $search: req.query.searchText }
+      search["$or"] = [
+        { title: { $regex: new RegExp(req.query.searchText), $options: "i" } },
+        {
+          keywords: {
+            $elemMatch: {
+              $regex: new RegExp(req.query.searchText),
+              $options: "i"
+            }
+          }
+        }
+      ]
     }
 
     if (typeof req.query.page !== "undefined") {

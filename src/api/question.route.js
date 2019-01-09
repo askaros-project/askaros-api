@@ -91,6 +91,30 @@ const populateQuery = (req, query) => {
 }
 
 export default {
+	getList: (req, res) => {
+		let search = {}
+
+		if (req.query.search) {
+			search["$or"] = [
+				{ title: { $regex: new RegExp(req.query.search), $options: "i" } },
+				{
+					keywords: {
+						$elemMatch: { $regex: new RegExp(req.query.search), $options: "i" }
+					}
+				}
+			]
+		}
+
+		Question.find(search)
+			.limit(10)
+			.then(questions => {
+				res.sendSuccess({ questions })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	getByUri: (req, res) => {
 		if (!req.params.uri) {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
