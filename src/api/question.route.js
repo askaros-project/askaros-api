@@ -216,7 +216,8 @@ export default {
 					{
 						type: CONST.ACTIVITY_TYPE.VOTE,
 						owner: req.account.user,
-						question: q
+						question: q,
+						code: req.body.code
 					},
 					true
 				)
@@ -272,7 +273,8 @@ export default {
 					{
 						type: CONST.ACTIVITY_TYPE.TAG,
 						owner: req.account.user,
-						question: q
+						question: q,
+						code: req.body.code
 					},
 					true
 				)
