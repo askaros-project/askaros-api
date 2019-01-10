@@ -5,6 +5,7 @@ import Activity from "../models/activity.model"
 import Vote from "../models/vote.model"
 import Tag from "../models/tag.model"
 import Mark from "../models/mark.model"
+import Comment from "../models/comment.model"
 import Promise from "bluebird"
 require("mongoose-query-random")
 
@@ -58,6 +59,11 @@ const prepareMarks = (question, userId) => {
 	return Promise.resolve(question)
 }
 
+const prepareComments = (question, userId) => {
+	question.comments = { total: question.comments.length }
+	return Promise.resolve(question)
+}
+
 const prepareToClient = (req, question) => {
 	const userId = req.account ? req.account.user : null
 	const detailed = req.query.detailed
@@ -78,6 +84,14 @@ const prepareToClient = (req, question) => {
 				return Promise.resolve(question)
 			}
 		})
+		.then(question => {
+			if (detailed) {
+				return prepareComments(question, userId)
+			} else {
+				delete question.comments
+				return Promise.resolve(question)
+			}
+		})
 }
 
 const populateQuery = (req, query) => {
@@ -88,6 +102,7 @@ const populateQuery = (req, query) => {
 		.populate({ path: "votes", options: { lean: true } })
 		.populate({ path: "tags", options: { lean: true } })
 		.populate({ path: "marks", options: { lean: true } })
+		.populate({ path: "comments", options: { lean: true } })
 }
 
 export default {
@@ -326,6 +341,45 @@ export default {
 					q.counters.spam_mark = q.counters.spam_mark + 1
 				}
 				return q.save()
+			})
+			.then(question => {
+				return populateQuery(req, Question.findById(req.params.id))
+					.lean()
+					.then(question => {
+						return prepareToClient(req, question)
+					})
+					.then(question => {
+						res.sendSuccess({ question: question })
+					})
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
+	comment: (req, res) => {
+		if (!req.body.text) {
+			return res.sendError(CONST.ERROR.WRONG_REQUEST)
+		}
+		Question.findById(req.params._id)
+			.lean()
+			.then(q => {
+				if (!q) {
+					return res.sendError(CONST.ERROR.WRONG_REQUEST)
+				}
+				return new Comment({
+					owner: req.account.user,
+					question: q,
+					text: req.body.text,
+					replyTo: req.body.replyTo
+				}).save()
+			})
+			.then(([q, comment]) => {
+				q.comments.push(comment)
+				q.counters.comments = q.counters.comments + 1
+				return q.save().then(() => {
+					return comment
+				})
 			})
 			.then(question => {
 				return populateQuery(req, Question.findById(req.params.id))
