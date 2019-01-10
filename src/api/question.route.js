@@ -157,6 +157,31 @@ export default {
 		}
 	},
 
+	getMyList: (req, res) => {
+		const pageSize = parseInt(req.query.pageSize) || 25
+		const page = req.query.page
+		Promise.all([
+			populateQuery(req, Question.find({ owner: req.account.user }))
+				.lean()
+				.limit(pageSize)
+				.skip(pageSize * (page - 1))
+				.then(questions => {
+					return Promise.all(
+						_.map(questions, question => prepareToClient(req, question))
+					)
+				}),
+			Question.find({ owner: req.account.user })
+				.lean()
+				.count()
+		])
+			.then(([questions, count]) => {
+				res.sendSuccess({ questions, count })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	create: (req, res) => {
 		if (!req.body.title) {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)

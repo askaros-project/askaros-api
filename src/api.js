@@ -54,6 +54,7 @@ export function API() {
 
   // QUESTIONS
   api.get("/questions", questionRoute.getList)
+  api.get("/questions/my", requireAuth, questionRoute.getMyList)
   api.get("/questions/:uri", fillAuth, questionRoute.getByUri)
   api.get("/questions/collection/:type", fillAuth, questionRoute.getCollection)
   api.post("/questions", requireAuth, questionRoute.create)
