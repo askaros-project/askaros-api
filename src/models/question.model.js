@@ -36,10 +36,15 @@ const questionSchema = new Schema(
 			default: [],
 			select: false
 		},
+		comments: {
+			type: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
+			default: [],
+			select: false
+		},
 		counters: {
 			type: countersSchema,
 			select: false,
-			default: { votes: 0, tags: 0, spam_mark: 0 }
+			default: { votes: 0, tags: 0, spam_mark: 0, comments: 0 }
 		},
 		createdAt: { type: Date, default: Date.now }
 	},

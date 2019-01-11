@@ -7,6 +7,7 @@ import accountRoute from "./api/account.route"
 import userRoute from "./api/user.route"
 import questionRoute from "./api/question.route"
 import activityRoute from "./api/activity.route"
+import commentRoute from "./api/comment.route"
 import adminRoute from "./api/admin.route"
 
 passport.use(jwtLogin)
@@ -65,6 +66,10 @@ export function API() {
   // ACTIVITY
   api.get("/activity", requireAuth, activityRoute.getItems)
   api.get("/activity/count", requireAuth, activityRoute.getCount)
+
+  // COMMENTS
+  api.get("/comments/:qid", requireAuth, commentRoute.load)
+  api.post("/comments/:qid", requireAuth, commentRoute.add)
 
   // ADMIN
   api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)
