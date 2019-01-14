@@ -1,22 +1,22 @@
-import { Router } from "express"
-import passport from "passport"
-import { jwtLogin } from "./services/passport"
-import request from "./services/request"
-import response from "./services/response"
-import accountRoute from "./api/account.route"
-import userRoute from "./api/user.route"
-import questionRoute from "./api/question.route"
-import activityRoute from "./api/activity.route"
-import commentRoute from "./api/comment.route"
-import adminRoute from "./api/admin.route"
+import { Router } from 'express'
+import passport from 'passport'
+import { jwtLogin } from './services/passport'
+import request from './services/request'
+import response from './services/response'
+import accountRoute from './api/account.route'
+import userRoute from './api/user.route'
+import questionRoute from './api/question.route'
+import activityRoute from './api/activity.route'
+import commentRoute from './api/comment.route'
+import adminRoute from './api/admin.route'
 
 passport.use(jwtLogin)
 const fillAuth = (req, res, next) => {
   passport.authenticate(
-    "jwt",
+    'jwt',
     {
       session: false,
-      assignProperty: "account"
+      assignProperty: 'account'
     },
     (err, account) => {
       req.account = account
@@ -24,13 +24,13 @@ const fillAuth = (req, res, next) => {
     }
   )(req, res, next)
 }
-const requireAuth = passport.authenticate("jwt", {
+const requireAuth = passport.authenticate('jwt', {
   session: false,
-  assignProperty: "account"
+  assignProperty: 'account'
 })
 const requireAdmin = (req, res, next) => {
   if (!req.account.isAdmin) {
-    return res.sendError("Forbidden", 403)
+    return res.sendError('Forbidden', 403)
   }
   next()
 }
@@ -42,40 +42,41 @@ export function API() {
   api.use(response)
 
   // ACCOUNT
-  api.get("/account", requireAuth, accountRoute.getData)
-  api.post("/account/email", accountRoute.emailReg)
-  api.post("/account/email/login", accountRoute.emailLogin)
-  api.post("/account/email/confirmation/:id", accountRoute.emailConfirmation)
-  api.post("/account/facebook/login", accountRoute.facebookLogin)
-  api.post("/account/google/login", accountRoute.googleLogin)
-  api.post("/account/twitter/login", accountRoute.twitterLogin)
+  api.get('/account', requireAuth, accountRoute.getData)
+  api.post('/account/email', accountRoute.emailReg)
+  api.post('/account/email/login', accountRoute.emailLogin)
+  api.post('/account/email/confirmation/:id', accountRoute.emailConfirmation)
+  api.post('/account/facebook/login', accountRoute.facebookLogin)
+  api.post('/account/google/login', accountRoute.googleLogin)
+  api.post('/account/twitter/login', accountRoute.twitterLogin)
 
   // USER
-  api.put("/user", requireAuth, userRoute.update)
+  api.put('/user', requireAuth, userRoute.update)
 
   // QUESTIONS
-  api.get("/questions", questionRoute.getList)
-  api.get("/questions/my", requireAuth, questionRoute.getMyList)
-  api.get("/questions/:uri", fillAuth, questionRoute.getByUri)
-  api.get("/questions/collection/:type", fillAuth, questionRoute.getCollection)
-  api.post("/questions", requireAuth, questionRoute.create)
-  api.post("/questions/:id/vote", requireAuth, questionRoute.vote)
-  api.post("/questions/:id/tag", requireAuth, questionRoute.tag)
-  api.post("/questions/:id/mark", requireAuth, questionRoute.mark)
+  api.get('/questions/search', questionRoute.getSearchQuestions)
+  api.get('/questions/profile', requireAuth, questionRoute.getProfileQuestions)
+  api.get('/questions/:uri', fillAuth, questionRoute.getByUri)
+  api.get('/questions/collection/:type', fillAuth, questionRoute.getCollection)
+  api.post('/questions', requireAuth, questionRoute.create)
+  api.post('/questions/:id/vote', requireAuth, questionRoute.vote)
+  api.post('/questions/:id/tag', requireAuth, questionRoute.tag)
+  api.post('/questions/:id/mark', requireAuth, questionRoute.mark)
 
   // ACTIVITY
-  api.get("/activity", requireAuth, activityRoute.getItems)
-  api.get("/activity/count", requireAuth, activityRoute.getCount)
+  api.get('/activity', requireAuth, activityRoute.getItems)
+  api.get('/activity/count', requireAuth, activityRoute.getCount)
 
   // COMMENTS
-  api.get("/comments/:qid", requireAuth, commentRoute.load)
-  api.post("/comments/:qid", requireAuth, commentRoute.add)
+  api.get('/comments/:qid', fillAuth, commentRoute.load)
+  api.post('/comments', requireAuth, commentRoute.add)
+  api.put('/comments/:id/marks/:code', requireAuth, commentRoute.mark)
 
   // ADMIN
-  api.get("/admin/accounts", requireAuth, requireAdmin, adminRoute.getAccounts)
-  api.get("/admin/questions", requireAuth, requireAdmin, adminRoute.getQuestns)
+  api.get('/admin/accounts', requireAuth, requireAdmin, adminRoute.getAccounts)
+  api.get('/admin/questions', requireAuth, requireAdmin, adminRoute.getQuestns)
   api.delete(
-    "/admin/questions/:id",
+    '/admin/questions/:id',
     requireAuth,
     requireAdmin,
     adminRoute.deleteQuestion

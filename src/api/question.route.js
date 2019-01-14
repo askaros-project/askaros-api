@@ -1,13 +1,13 @@
-import _ from "lodash"
-import CONST from "../const"
-import Question from "../models/question.model"
-import Activity from "../models/activity.model"
-import Vote from "../models/vote.model"
-import Tag from "../models/tag.model"
-import Mark from "../models/mark.model"
-import Comment from "../models/comment.model"
-import Promise from "bluebird"
-require("mongoose-query-random")
+import _ from 'lodash'
+import CONST from '../const'
+import Question from '../models/question.model'
+import Activity from '../models/activity.model'
+import Vote from '../models/vote.model'
+import Tag from '../models/tag.model'
+import Mark from '../models/mark.model'
+import Comment from '../models/comment.model'
+import Promise from 'bluebird'
+require('mongoose-query-random')
 
 const prepareVotes = (question, userId) => {
 	let items = question.votes
@@ -96,25 +96,25 @@ const prepareToClient = (req, question) => {
 
 const populateQuery = (req, query) => {
 	if (!req.query.detailed) {
-		return query.populate({ path: "votes", options: { lean: true } })
+		return query.populate({ path: 'votes', options: { lean: true } })
 	}
 	return query
-		.populate({ path: "votes", options: { lean: true } })
-		.populate({ path: "tags", options: { lean: true } })
-		.populate({ path: "marks", options: { lean: true } })
-		.populate({ path: "comments", options: { lean: true } })
+		.populate({ path: 'votes', options: { lean: true } })
+		.populate({ path: 'tags', options: { lean: true } })
+		.populate({ path: 'marks', options: { lean: true } })
+		.populate({ path: 'comments', options: { lean: true } })
 }
 
 export default {
-	getList: (req, res) => {
+	getSearchQuestions: (req, res) => {
 		let search = {}
 
 		if (req.query.search) {
-			search["$or"] = [
-				{ title: { $regex: new RegExp(req.query.search), $options: "i" } },
+			search['$or'] = [
+				{ title: { $regex: new RegExp(req.query.search), $options: 'i' } },
 				{
 					keywords: {
-						$elemMatch: { $regex: new RegExp(req.query.search), $options: "i" }
+						$elemMatch: { $regex: new RegExp(req.query.search), $options: 'i' }
 					}
 				}
 			]
@@ -151,13 +151,13 @@ export default {
 	},
 
 	getCollection: (req, res) => {
-		const types = ["random"]
+		const types = ['random']
 		if (!req.params.type || types.indexOf(req.params.type) === -1) {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
-		if (req.params.type === "random") {
+		if (req.params.type === 'random') {
 			Question.find()
-				.populate({ path: "votes", options: { lean: true } })
+				.populate({ path: 'votes', options: { lean: true } })
 				.lean()
 				.limit(5)
 				.then(questions => {
@@ -172,7 +172,7 @@ export default {
 		}
 	},
 
-	getMyList: (req, res) => {
+	getProfileQuestions: (req, res) => {
 		const pageSize = parseInt(req.query.pageSize) || 25
 		const page = req.query.page
 		Promise.all([
@@ -225,8 +225,8 @@ export default {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		Question.findById(req.params.id)
-			.populate({ path: "votes" })
-			.select("+counters")
+			.populate({ path: 'votes' })
+			.select('+counters')
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
@@ -282,8 +282,8 @@ export default {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		Question.findById(req.params.id)
-			.populate({ path: "tags" })
-			.select("+counters")
+			.populate({ path: 'tags' })
+			.select('+counters')
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
@@ -339,8 +339,8 @@ export default {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		Question.findById(req.params.id)
-			.populate({ path: "marks", options: { lean: true } })
-			.select("+counters")
+			.populate({ path: 'marks', options: { lean: true } })
+			.select('+counters')
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
