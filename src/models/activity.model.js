@@ -1,8 +1,8 @@
-import _ from "lodash"
-import CONST from "../const"
-import mongoose from "mongoose"
-import mongoose_delete from "mongoose-delete"
-mongoose.Promise = require("bluebird")
+import _ from 'lodash'
+import CONST from '../const'
+import mongoose from 'mongoose'
+import mongoose_delete from 'mongoose-delete'
+mongoose.Promise = require('bluebird')
 
 const { ACTIVITY_TYPE } = CONST
 
@@ -22,8 +22,8 @@ const activitySchema = new Schema({
 		],
 		required: true
 	},
-	owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-	question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
+	owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+	question: { type: Schema.Types.ObjectId, ref: 'Question', required: true },
 	code: { type: Number },
 	unread: { type: Boolean, default: true },
 	createdAt: { type: Date, default: Date.now }
@@ -56,6 +56,8 @@ activitySchema.statics.push = (
 							owner: question.owner,
 							question: question
 						}).save()
+					} else {
+						return Promise.resolve()
 					}
 				})
 				.then(() => {
@@ -66,10 +68,9 @@ activitySchema.statics.push = (
 						owner: { $ne: owner }
 					})
 						.lean()
-						.select("owner")
+						.select('owner')
 				})
 				.then(activities => {
-					console.log(activities)
 					return Promise.all(
 						_.map(activities, a => {
 							return new ModelClass({
@@ -80,8 +81,21 @@ activitySchema.statics.push = (
 						})
 					)
 				})
+		} else if (type === ACTIVITY_TYPE.COMMENT) {
+			return Promise.resolve().then(() => {
+				if (!question.owner.equals(owner)) {
+					return new ModelClass({
+						type: ACTIVITY_TYPE.SOMEONE_COMMENT,
+						owner: question.owner,
+						question: question
+					}).save()
+				} else {
+					return Promise.resolve()
+				}
+			})
+		} else {
+			return Promise.resolve()
 		}
-		return Promise.resolve()
 	})
 }
 
@@ -89,5 +103,5 @@ activitySchema.plugin(mongoose_delete, {
 	deletedAt: true,
 	overrideMethods: true
 })
-const ModelClass = mongoose.model("Activity", activitySchema)
+const ModelClass = mongoose.model('Activity', activitySchema)
 export default ModelClass

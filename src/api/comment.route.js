@@ -3,6 +3,7 @@ import CONST from '../const'
 import Question from '../models/question.model'
 import Comment from '../models/comment.model'
 import Mark from '../models/mark.model'
+import Activity from '../models/activity.model'
 import Promise from 'bluebird'
 
 const populateQuery = (req, query) => {
@@ -72,9 +73,21 @@ export default {
 			.then(([q, comment]) => {
 				q.comments.push(comment)
 				q.counters.comments = q.counters.comments + 1
-				return q.save().then(() => {
-					return populateQuery(req, Comment.findById(comment._id)).lean()
-				})
+				return q
+					.save()
+					.then(() => {
+						return Activity.push(
+							{
+								type: CONST.ACTIVITY_TYPE.COMMENT,
+								owner: req.account.user,
+								question: q
+							},
+							true
+						)
+					})
+					.then(() => {
+						return populateQuery(req, Comment.findById(comment._id)).lean()
+					})
 			})
 			.then(comment => {
 				return prepareToClient(req, comment)
