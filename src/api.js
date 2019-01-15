@@ -57,7 +57,22 @@ export function API() {
   api.get('/questions/search', questionRoute.getSearchQuestions)
   api.get('/questions/profile', requireAuth, questionRoute.getProfileQuestions)
   api.get('/questions/:uri', fillAuth, questionRoute.getByUri)
-  api.get('/questions/collection/:type', fillAuth, questionRoute.getCollection)
+  api.get(
+    '/questions/collection/random',
+    fillAuth,
+    questionRoute.getRandomCollection
+  )
+  api.get(
+    '/questions/collection/related',
+    fillAuth,
+    questionRoute.getRelatedCollection
+  )
+  api.get('/questions/collection/tag', fillAuth, questionRoute.getTagCollection)
+  api.get(
+    '/questions/collection/trending',
+    fillAuth,
+    questionRoute.getTrendingCollection
+  )
   api.post('/questions', requireAuth, questionRoute.create)
   api.post('/questions/:id/vote', requireAuth, questionRoute.vote)
   api.post('/questions/:id/tag', requireAuth, questionRoute.tag)
