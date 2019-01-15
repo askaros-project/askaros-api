@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import CONST from '../const'
+import Comment from './comment.model'
 import mongoose from 'mongoose'
 import mongoose_delete from 'mongoose-delete'
 mongoose.Promise = require('bluebird')
@@ -18,6 +19,7 @@ const activitySchema = new Schema({
 			ACTIVITY_TYPE.SOMEONE_VOTE,
 			ACTIVITY_TYPE.SOMEONE_TAG,
 			ACTIVITY_TYPE.SOMEONE_COMMENT,
+			ACTIVITY_TYPE.SOMEONE_REPLY,
 			ACTIVITY_TYPE.OTHERS_VOTE_AS_WELL
 		],
 		required: true
@@ -30,7 +32,7 @@ const activitySchema = new Schema({
 })
 
 activitySchema.statics.push = (
-	{ type, owner, question, code },
+	{ type, owner, question, code, options = {} },
 	markAsRead = false
 ) => {
 	const activity = new ModelClass({
@@ -82,17 +84,34 @@ activitySchema.statics.push = (
 					)
 				})
 		} else if (type === ACTIVITY_TYPE.COMMENT) {
-			return Promise.resolve().then(() => {
-				if (!question.owner.equals(owner)) {
-					return new ModelClass({
-						type: ACTIVITY_TYPE.SOMEONE_COMMENT,
-						owner: question.owner,
-						question: question
-					}).save()
-				} else {
-					return Promise.resolve()
-				}
-			})
+			return Promise.resolve()
+				.then(() => {
+					if (!question.owner.equals(owner)) {
+						return new ModelClass({
+							type: ACTIVITY_TYPE.SOMEONE_COMMENT,
+							owner: question.owner,
+							question: question
+						}).save()
+					} else {
+						return Promise.resolve()
+					}
+				})
+				.then(() => {
+					if (options.replyTo) {
+						return Comment.findById(options.replyTo)
+							.lean()
+							.then(comment => {
+								if (!comment || comment.owner.equals(owner)) {
+									return Promise.resolve()
+								}
+								return new ModelClass({
+									type: ACTIVITY_TYPE.SOMEONE_REPLY,
+									owner: comment.owner,
+									question: question
+								}).save()
+							})
+					}
+				})
 		} else {
 			return Promise.resolve()
 		}

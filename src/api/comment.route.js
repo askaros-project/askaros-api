@@ -80,7 +80,8 @@ export default {
 							{
 								type: CONST.ACTIVITY_TYPE.COMMENT,
 								owner: req.account.user,
-								question: q
+								question: q,
+								options: { replyTo: req.body.replyTo }
 							},
 							true
 						)
