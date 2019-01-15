@@ -1,17 +1,17 @@
-const log = require("../services/log")("account.model")
-import _ from "lodash"
-import CONST from "../const"
-import mongoose from "mongoose"
-import mongoose_delete from "mongoose-delete"
-import pbkdf2 from "../services/pbkdf2"
-import validation from "../services/validation"
-import emailSender from "../services/email"
-import jwt from "jwt-simple"
-import { OAuth2Client } from "google-auth-library"
-import User from "./user.model"
-import Confirmation from "./confirmation.model"
+const log = require('../services/log')('account.model')
+import _ from 'lodash'
+import CONST from '../const'
+import mongoose from 'mongoose'
+import mongoose_delete from 'mongoose-delete'
+import pbkdf2 from '../services/pbkdf2'
+import validation from '../services/validation'
+import emailSender from '../services/email'
+import jwt from 'jwt-simple'
+import { OAuth2Client } from 'google-auth-library'
+import User from './user.model'
+import Confirmation from './confirmation.model'
 
-mongoose.Promise = require("bluebird")
+mongoose.Promise = require('bluebird')
 
 const Schema = mongoose.Schema
 
@@ -29,7 +29,7 @@ const accountSchema = new Schema(
       required: true
     },
     credentials: { type: Object, required: true, select: false },
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     createdAt: { type: Date, default: Date.now }
   },
   { usePushEach: true }
@@ -41,9 +41,9 @@ accountSchema.statics.createByEmail = data => {
   }
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.EMAIL,
-    "credentials.email": data.email
+    'credentials.email': data.email
   })
-    .select("+credentials")
+    .select('+credentials')
     .then(existingAccount => {
       if (existingAccount) {
         if (existingAccount.credentials.confirmed) {
@@ -55,20 +55,20 @@ accountSchema.statics.createByEmail = data => {
       return validation
         .validate(data, {
           username: {
-            type: "string",
+            type: 'string',
             required: true,
             allowEmpty: false,
             trim: true
           },
           email: {
-            type: "string",
+            type: 'string',
             required: true,
             allowEmpty: false,
             trim: true,
-            format: "email"
+            format: 'email'
           },
           password: {
-            type: "string",
+            type: 'string',
             required: true,
             allowEmpty: false,
             trim: true,
@@ -105,9 +105,9 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
 
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.EMAIL,
-    "credentials.email": email
+    'credentials.email': email
   })
-    .select("+credentials")
+    .select('+credentials')
     .then(account => {
       if (!account) {
         return Promise.reject(CONST.ERROR.ACCOUNT_NOT_FOUND)
@@ -131,7 +131,7 @@ accountSchema.statics.loginByFacebook = (fbUserId, { name }) => {
   }
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.FACEBOOK,
-    "credentials.fbUserId": fbUserId
+    'credentials.fbUserId': fbUserId
   })
     .then(account => {
       if (!account) {
@@ -168,7 +168,7 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
   const oauth2Client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    "postmessage"
+    'postmessage'
   )
 
   return oauth2Client
@@ -177,7 +177,7 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
       if (resp && resp.tokens && resp.tokens.access_token) {
         return resp.tokens
       } else {
-        return Promise.reject("Cannot get access token", resp)
+        return Promise.reject('Cannot get access token', resp)
       }
     })
     .then(tokens => {
@@ -219,7 +219,7 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
 accountSchema.statics.loginByTwitter = ({ twUserId, username }) => {
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.TWITTER,
-    "credentials.twUserId": twUserId
+    'credentials.twUserId': twUserId
   })
     .then(account => {
       if (!account) {
@@ -249,7 +249,7 @@ accountSchema.statics.comparePassword = (candidatePassword, passwordHash) => {
   return pbkdf2.verifyPassword(candidatePassword, passwordHash)
 }
 
-accountSchema.post("remove", function(doc) {
+accountSchema.post('remove', function(doc) {
   User.findById(doc.user).then(user => {
     if (user) {
       user.remove()
@@ -282,5 +282,5 @@ accountSchema.plugin(mongoose_delete, {
   deletedAt: true,
   overrideMethods: true
 })
-const ModelClass = mongoose.model("Account", accountSchema)
+const ModelClass = mongoose.model('Account', accountSchema)
 export default ModelClass
