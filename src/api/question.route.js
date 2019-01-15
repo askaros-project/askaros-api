@@ -499,44 +499,5 @@ export default {
 			.catch(err => {
 				res.sendError(err)
 			})
-	},
-
-	comment: (req, res) => {
-		if (!req.body.text) {
-			return res.sendError(CONST.ERROR.WRONG_REQUEST)
-		}
-		Question.findById(req.params._id)
-			.lean()
-			.then(q => {
-				if (!q) {
-					return res.sendError(CONST.ERROR.WRONG_REQUEST)
-				}
-				return new Comment({
-					owner: req.account.user,
-					question: q,
-					text: req.body.text,
-					replyTo: req.body.replyTo
-				}).save()
-			})
-			.then(([q, comment]) => {
-				q.comments.push(comment)
-				q.counters.comments = q.counters.comments + 1
-				return q.save().then(() => {
-					return comment
-				})
-			})
-			.then(question => {
-				return populateQuery(req, Question.findById(req.params.id))
-					.lean()
-					.then(question => {
-						return prepareToClient(req, question)
-					})
-					.then(question => {
-						res.sendSuccess({ question: question })
-					})
-			})
-			.catch(err => {
-				res.sendError(err)
-			})
 	}
 }

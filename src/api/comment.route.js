@@ -73,13 +73,14 @@ export default {
 				q.comments.push(comment)
 				q.counters.comments = q.counters.comments + 1
 				return q.save().then(() => {
-					return Comment.findById(comment._id)
-						.populate({ path: 'owner', options: { lean: true } })
-						.lean()
+					return populateQuery(req, Comment.findById(comment._id)).lean()
 				})
 			})
 			.then(comment => {
-				res.sendSuccess({ comment: comment })
+				return prepareToClient(req, comment)
+			})
+			.then(comment => {
+				res.sendSuccess({ comment })
 			})
 			.catch(err => {
 				res.sendError(err)
