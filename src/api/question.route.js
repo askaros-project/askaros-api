@@ -151,25 +151,144 @@ export default {
 	},
 
 	getCollection: (req, res) => {
-		const types = ['random']
+		const types = ['random', 'related', 'trending', 'tag']
+		const limit = req.query.limit || 5
 		if (!req.params.type || types.indexOf(req.params.type) === -1) {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
-		if (req.params.type === 'random') {
-			Question.find()
-				.populate({ path: 'votes', options: { lean: true } })
-				.lean()
-				.limit(5)
-				.then(questions => {
-					return Promise.all(_.map(questions, q => prepareToClient(req, q)))
-				})
-				.then(questions => {
-					return res.sendSuccess({ questions })
-				})
-				.catch(err => {
-					res.sendError(err)
-				})
-		}
+
+		return Promise.resolve()
+			.then(() => {
+				if (req.params.type === 'tag') {
+					return Tag.aggregate([
+						{
+							$match: { code: parseInt(req.query.code) }
+						},
+						{
+							$group: { _id: '$question', count: { $sum: 1 } }
+						},
+						{
+							$sort: {
+								count: -1
+							}
+						},
+						{
+							$limit: limit
+						}
+					]).then(result => {
+						let sortedIds = _.map(result, '_id')
+						return Question.find({
+							_id: { $in: sortedIds }
+						})
+							.populate({ path: 'votes', options: { lean: true } })
+							.lean()
+							.then(questions => {
+								return questions.sort((q1, q2) => {
+									return (
+										_.findIndex(sortedIds, id => id.equals(q1._id)) -
+										_.findIndex(sortedIds, id => id.equals(q2._id))
+									)
+								})
+							})
+					})
+				} else if (req.params.type === 'trending') {
+					var date = new Date()
+					date.setDate(date.getDate() - 15) // last 15 days
+					return Activity.aggregate([
+						{
+							$match: {
+								createdAt: { $gte: date },
+								type: {
+									$in: [
+										CONST.ACTIVITY_TYPE.TAG,
+										CONST.ACTIVITY_TYPE.VOTE,
+										CONST.ACTIVITY_TYPE.COMMENT
+									]
+								}
+							}
+						},
+						{
+							$group: { _id: '$question', count: { $sum: 1 } }
+						},
+						{
+							$sort: {
+								count: -1
+							}
+						},
+						{
+							$limit: 100 // Activity may have deleted questions. Lets filter its after
+						}
+					]).then(result => {
+						let sortedIds = _.map(result, '_id')
+						return Question.find({
+							_id: { $in: sortedIds }
+						})
+							.populate({ path: 'votes', options: { lean: true } })
+							.lean()
+							.limit(limit)
+							.then(questions => {
+								return questions.sort((q1, q2) => {
+									return (
+										_.findIndex(sortedIds, id => id.equals(q1._id)) -
+										_.findIndex(sortedIds, id => id.equals(q2._id))
+									)
+								})
+							})
+					})
+				} else if (req.params.type === 'random') {
+					return Question.find()
+						.select('_id')
+						.lean()
+						.then(ids => {
+							if (ids.length <= limit) {
+								return Question.find()
+									.populate({ path: 'votes', options: { lean: true } })
+									.lean()
+							} else {
+								let randomIndexes = []
+								while (randomIndexes.length < limit) {
+									let index = _.random(0, ids.length - 1)
+									if (randomIndexes.indexOf(index) === -1) {
+										randomIndexes.push(index)
+									}
+								}
+								return Question.find({
+									_id: { $in: _.map(randomIndexes, i => ids[i]) }
+								})
+									.lean()
+									.populate({ path: 'votes', options: { lean: true } })
+							}
+						})
+				} else if (req.params.type === 'related') {
+					return Question.findById(req.query.qid)
+						.lean()
+						.then(q => {
+							if (!q) {
+								return Promise.reject(CONST.ERROR.WRONG_REQUEST)
+							}
+							if (!q.keywords.length) {
+								return Promise.resolve([])
+							} else {
+								return Question.find({
+									_id: { $ne: q._id },
+									keywords: { $in: q.keywords }
+								})
+									.populate({ path: 'votes', options: { lean: true } })
+									.lean()
+									.limit(limit)
+							}
+						})
+				}
+			})
+			.then(questions => {
+				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
+			})
+			.then(questions => {
+				res.sendSuccess({ questions })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
 	},
 
 	getProfileQuestions: (req, res) => {
