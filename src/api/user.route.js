@@ -1,8 +1,8 @@
-import _ from "lodash"
-import User from "../models/user.model"
-import CONST from "../const"
-import mongoose from "mongoose"
-import Promise from "bluebird"
+import _ from 'lodash'
+import User from '../models/user.model'
+import CONST from '../const'
+import mongoose from 'mongoose'
+import Promise from 'bluebird'
 
 export default {
 	update: (req, res) => {
@@ -14,6 +14,8 @@ export default {
 				user.username = req.body.username
 				user.location = req.body.location
 				user.descr = req.body.descr
+				user.birthyear = req.body.birthyear
+				user.sex = req.body.sex
 				return user.save()
 			})
 			.then(user => {
