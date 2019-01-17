@@ -9,7 +9,7 @@ import Comment from '../models/comment.model'
 import Promise from 'bluebird'
 require('mongoose-query-random')
 
-const prepareVotes = (question, userId) => {
+const prepareVotes = (detailed, question, userId) => {
 	let items = question.votes
 	question.votes = {
 		total: question.votes.length,
@@ -17,7 +17,8 @@ const prepareVotes = (question, userId) => {
 			[CONST.VOTE.YES]: 0,
 			[CONST.VOTE.NO]: 0
 		},
-		selected: undefined
+		selected: undefined,
+		items: detailed ? items : undefined
 	}
 	for (let i = 0; i < items.length; i++) {
 		if (items[i].code === CONST.VOTE.YES) {
@@ -32,7 +33,11 @@ const prepareVotes = (question, userId) => {
 	return Promise.resolve(question)
 }
 
-const prepareTags = (question, userId) => {
+const prepareTags = (detailed, question, userId) => {
+	if (!detailed) {
+		delete question.tags
+		return Promise.resolve(question)
+	}
 	let items = question.tags
 	question.tags = {
 		counts: {},
@@ -50,7 +55,11 @@ const prepareTags = (question, userId) => {
 	return Promise.resolve(question)
 }
 
-const prepareMarks = (question, userId) => {
+const prepareMarks = (detailed, question, userId) => {
+	if (!detailed) {
+		delete question.marks
+		return Promise.resolve(question)
+	}
 	let items = question.marks
 	question.marks = { items: [] }
 	if (userId) {
@@ -59,7 +68,11 @@ const prepareMarks = (question, userId) => {
 	return Promise.resolve(question)
 }
 
-const prepareComments = (question, userId) => {
+const prepareComments = (detailed, question, userId) => {
+	if (!detailed) {
+		delete question.comments
+		return Promise.resolve(question)
+	}
 	question.comments = { total: question.comments.length }
 	return Promise.resolve(question)
 }
@@ -67,30 +80,15 @@ const prepareComments = (question, userId) => {
 const prepareToClient = (req, question) => {
 	const userId = req.account ? req.account.user : null
 	const detailed = req.query.detailed
-	return prepareVotes(question, userId)
+	return prepareVotes(detailed, question, userId)
 		.then(() => {
-			if (detailed) {
-				return prepareTags(question, userId)
-			} else {
-				delete question.tags
-				return Promise.resolve(question)
-			}
+			return prepareTags(detailed, question, userId)
 		})
 		.then(question => {
-			if (detailed) {
-				return prepareMarks(question, userId)
-			} else {
-				delete question.marks
-				return Promise.resolve(question)
-			}
+			return prepareMarks(detailed, question, userId)
 		})
 		.then(question => {
-			if (detailed) {
-				return prepareComments(question, userId)
-			} else {
-				delete question.comments
-				return Promise.resolve(question)
-			}
+			return prepareComments(detailed, question, userId)
 		})
 }
 
@@ -144,6 +142,23 @@ export default {
 			})
 			.then(question => {
 				res.sendSuccess({ question })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
+	getNewestCollection: (req, res) => {
+		const limit = parseInt(req.query.limit) || 5
+		populateQuery(req, Question.find())
+			.sort({ createdAt: -1 })
+			.limit(limit)
+			.lean()
+			.then(questions => {
+				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
+			})
+			.then(questions => {
+				res.sendSuccess({ questions })
 			})
 			.catch(err => {
 				res.sendError(err)

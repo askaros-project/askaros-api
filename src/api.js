@@ -63,6 +63,11 @@ export function API() {
     questionRoute.getRandomCollection
   )
   api.get(
+    '/questions/collection/newest',
+    fillAuth,
+    questionRoute.getNewestCollection
+  )
+  api.get(
     '/questions/collection/related',
     fillAuth,
     questionRoute.getRelatedCollection
