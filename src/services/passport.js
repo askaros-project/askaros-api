@@ -1,7 +1,7 @@
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt"
-import Account from "../models/account.model"
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
+import Account from '../models/account.model'
 
-require("dotenv").config()
+require('dotenv').config()
 
 // Setup options for JWT strategy
 const jwtOptions = {
@@ -14,7 +14,7 @@ const jwtOptions = {
 // done: callback function
 export const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
   Account.findById(payload._id)
-    .select("_id provider user isAdmin createdAt")
+    .select('_id provider user isAdmin isSuspended createdAt')
     .lean()
     .then(account => {
       let now = new Date().getTime()

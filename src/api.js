@@ -24,12 +24,19 @@ const fillAuth = (req, res, next) => {
     }
   )(req, res, next)
 }
-const requireAuth = passport.authenticate('jwt', {
+
+const isAuth = passport.authenticate('jwt', {
   session: false,
   assignProperty: 'account'
 })
-const requireAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (!req.account.isAdmin) {
+    return res.sendError('Forbidden', 403)
+  }
+  next()
+}
+const isEnabled = (req, res, next) => {
+  if (req.account.isSuspended) {
     return res.sendError('Forbidden', 403)
   }
   next()
@@ -42,7 +49,7 @@ export function API() {
   api.use(response)
 
   // ACCOUNT
-  api.get('/account', requireAuth, accountRoute.getData)
+  api.get('/account', isAuth, accountRoute.getData)
   api.post('/account/email', accountRoute.emailReg)
   api.post('/account/email/login', accountRoute.emailLogin)
   api.post('/account/email/confirmation/:id', accountRoute.emailConfirmation)
@@ -51,11 +58,11 @@ export function API() {
   api.post('/account/twitter/login', accountRoute.twitterLogin)
 
   // USER
-  api.put('/user', requireAuth, userRoute.update)
+  api.put('/user', isAuth, userRoute.update)
 
   // QUESTIONS
   api.get('/questions/search', questionRoute.getSearchQuestions)
-  api.get('/questions/profile', requireAuth, questionRoute.getProfileQuestions)
+  api.get('/questions/profile', isAuth, questionRoute.getProfileQuestions)
   api.get('/questions/:uri', fillAuth, questionRoute.getByUri)
   api.get(
     '/questions/collection/random',
@@ -78,29 +85,33 @@ export function API() {
     fillAuth,
     questionRoute.getTrendingCollection
   )
-  api.post('/questions', requireAuth, questionRoute.create)
-  api.post('/questions/:id/vote', requireAuth, questionRoute.vote)
-  api.post('/questions/:id/tag', requireAuth, questionRoute.tag)
-  api.post('/questions/:id/mark', requireAuth, questionRoute.mark)
+  api.post('/questions', isAuth, isEnabled, questionRoute.create)
+  api.post('/questions/:id/vote', isAuth, isEnabled, questionRoute.vote)
+  api.post('/questions/:id/tag', isAuth, isEnabled, questionRoute.tag)
+  api.post('/questions/:id/mark', isAuth, isEnabled, questionRoute.mark)
 
   // ACTIVITY
-  api.get('/activity', requireAuth, activityRoute.getItems)
-  api.get('/activity/count', requireAuth, activityRoute.getCount)
+  api.get('/activity', isAuth, activityRoute.getItems)
+  api.get('/activity/count', isAuth, activityRoute.getCount)
 
   // COMMENTS
   api.get('/comments/:qid', fillAuth, commentRoute.load)
-  api.post('/comments', requireAuth, commentRoute.add)
-  api.put('/comments/:id/marks/:code', requireAuth, commentRoute.mark)
+  api.post('/comments', isAuth, isEnabled, commentRoute.add)
+  api.put('/comments/:id/marks/:code', isAuth, isEnabled, commentRoute.mark)
 
   // ADMIN
-  api.get('/admin/accounts', requireAuth, requireAdmin, adminRoute.getAccounts)
-  api.get('/admin/questions', requireAuth, requireAdmin, adminRoute.getQuestns)
-  api.delete(
-    '/admin/questions/:id',
-    requireAuth,
-    requireAdmin,
-    adminRoute.deleteQuestion
+  api.get('/admin/accounts', isAuth, isAdmin, adminRoute.getAccounts)
+  api.post('/admin/accounts/:id/admin', isAuth, isAdmin, adminRoute.toggleAdmin)
+  api.post(
+    '/admin/accounts/:id/suspended',
+    isAuth,
+    isAdmin,
+    adminRoute.toggleSuspended
   )
+  api.get('/admin/questions', isAuth, isAdmin, adminRoute.getQuestns)
+  api.delete('/admin/questions/:id', isAuth, isAdmin, adminRoute.deleteQuestion)
+  api.get('/admin/comments', isAuth, isAdmin, adminRoute.getComments)
+  api.delete('/admin/comments/:id', isAuth, isAdmin, adminRoute.deleteComment)
 
   return api
 }

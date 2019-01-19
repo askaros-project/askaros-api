@@ -5,6 +5,7 @@ import Comment from '../models/comment.model'
 import Mark from '../models/mark.model'
 import Activity from '../models/activity.model'
 import Promise from 'bluebird'
+import sanitizeHtml from 'sanitize-html'
 
 const populateQuery = (req, query) => {
 	return query
@@ -36,7 +37,7 @@ const prepareToClient = (req, comment) => {
 
 export default {
 	load: (req, res) => {
-		populateQuery(req, Comment.find({ question: req.params.qid }))
+		populateQuery(req, Comment.findWithDeleted({ question: req.params.qid }))
 			.lean()
 			.then(items => {
 				return Promise.all(_.map(items, item => prepareToClient(req, item)))
@@ -60,12 +61,20 @@ export default {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
 				}
+
+				const text = sanitizeHtml(req.body.text, {
+					allowedTags: ['b', 'i', 'em', 'div', 'strong', 'a', 'br'],
+					allowedAttributes: {
+						a: ['href']
+					}
+				})
+
 				return Promise.all([
 					Promise.resolve(q),
 					new Comment({
 						owner: req.account.user,
 						question: q,
-						text: req.body.text,
+						text: text,
 						replyTo: req.body.replyTo
 					}).save()
 				])
@@ -103,6 +112,7 @@ export default {
 
 	mark: (req, res) => {
 		Comment.findById(req.params.id)
+			.select('+counters')
 			.populate('marks')
 			.then(comment => {
 				if (!comment) {
@@ -119,7 +129,15 @@ export default {
 			})
 			.then(([comment, mark]) => {
 				if (mark) {
-					return mark.remove()
+					return mark.remove().then(() => {
+						if (mark.code === CONST.MARK.SPAM) {
+							comment.counters.spam_mark = comment.counters.spam_mark - 1
+						} else if (mark.code === CONST.MARK.LIKE) {
+							comment.counters.like_mark = comment.counters.like_mark - 1
+						}
+						comment.markModified('counters')
+						return comment.save()
+					})
 				} else {
 					return new Mark({
 						owner: req.account.user,
@@ -129,11 +147,16 @@ export default {
 						.save()
 						.then(mark => {
 							comment.marks.push(mark)
+							if (mark.code === CONST.MARK.SPAM) {
+								comment.counters.spam_mark = comment.counters.spam_mark + 1
+							} else if (mark.code === CONST.MARK.LIKE) {
+								comment.counters.like_mark = comment.counters.like_mark + 1
+							}
 							return comment.save()
 						})
 				}
 			})
-			.then(() => {
+			.then(comment => {
 				return populateQuery(req, Comment.findById(req.params.id))
 					.lean()
 					.then(comment => {

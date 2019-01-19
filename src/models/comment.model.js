@@ -6,6 +6,14 @@ mongoose.Promise = require('bluebird')
 
 const Schema = mongoose.Schema
 
+const countersSchema = new Schema(
+	{
+		spam_mark: { type: Number, default: 0 },
+		like_mark: { type: Number, default: 0 }
+	},
+	{ _id: false }
+)
+
 const commentSchema = new Schema(
 	{
 		owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -16,6 +24,11 @@ const commentSchema = new Schema(
 			type: [{ type: Schema.Types.ObjectId, ref: 'Mark' }],
 			default: [],
 			select: false
+		},
+		counters: {
+			type: countersSchema,
+			select: false,
+			default: { spam_mark: 0, like_mark: 0 }
 		},
 		createdAt: { type: Date, default: Date.now }
 	},

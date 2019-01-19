@@ -1,18 +1,18 @@
-const log = require("./services/log")("seeder")
-import _ from "lodash"
-import fetch from "node-fetch"
-import Promise from "bluebird"
-import pbkdf2 from "./services/pbkdf2"
-import CONST from "./const"
-import Account from "./models/account.model"
-import User from "./models/user.model"
+const log = require('./services/log')('seeder')
+import _ from 'lodash'
+import fetch from 'node-fetch'
+import Promise from 'bluebird'
+import pbkdf2 from './services/pbkdf2'
+import CONST from './const'
+import Account from './models/account.model'
+import User from './models/user.model'
 
 function seedAccounts() {
   const data = [
     {
-      username: "John Smith",
-      email: "admin@qapp.io",
-      password: "admin123",
+      username: 'John Smith',
+      email: 'admin@askaros.com',
+      password: 'admin123',
       isAdmin: true
     }
   ]
@@ -52,14 +52,14 @@ function seedAccounts() {
 }
 
 function seedAll() {
-  log.info("Seeding...")
+  log.info('Seeding...')
   return Promise.resolve()
     .then(() => {
-      log.info("Seeding accounts..")
+      log.info('Seeding accounts..')
       return seedAccounts()
     })
     .then(() => {
-      log.info("Seeding finished")
+      log.info('Seeding finished')
     })
     .catch(err => {
       log.crit(err)

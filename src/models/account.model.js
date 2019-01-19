@@ -18,6 +18,7 @@ const Schema = mongoose.Schema
 const accountSchema = new Schema(
   {
     isAdmin: { type: Boolean, default: false },
+    isSuspended: { type: Boolean, default: false },
     provider: {
       type: String,
       enum: [
