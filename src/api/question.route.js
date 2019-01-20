@@ -379,11 +379,14 @@ export default {
 			keywords: req.body.keywords || []
 		})
 			.then(question => {
-				return Activity.push({
-					type: CONST.ACTIVITY_TYPE.QUESTION,
-					owner: req.account.user,
-					question: question
-				}).then(() => {
+				return Activity.push(
+					{
+						type: CONST.ACTIVITY_TYPE.QUESTION,
+						owner: req.account.user,
+						question: question
+					},
+					true
+				).then(() => {
 					res.sendSuccess({ question })
 				})
 			})
@@ -403,25 +406,38 @@ export default {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
 				}
-				const vote = _.find(q.votes, a => {
+				const voteIndex = _.findIndex(q.votes, a => {
 					return a.owner.equals(req.account.user) && a.question.equals(q._id)
 				})
-				if (vote) {
-					return Promise.reject(CONST.ERROR.ALREADY_VOTED)
+				if (voteIndex !== -1) {
+					if (q.votes[voteIndex].code === req.body.code) {
+						const removedVotes = q.votes.splice(voteIndex, 1)
+						q.counters.votes = q.counters.votes - 1
+						return q.save().then(() => {
+							return removedVotes[0].remove().then(v => {
+								return Promise.resolve(q)
+							})
+						})
+					} else {
+						q.votes[voteIndex].code = req.body.code
+						return q.votes[voteIndex].save().then(() => {
+							return Promise.resolve(q)
+						})
+					}
+				} else {
+					return Promise.all([
+						Promise.resolve(q),
+						new Vote({
+							owner: req.account.user,
+							question: q,
+							code: req.body.code
+						}).save()
+					]).then(([q, vote]) => {
+						q.votes.push(vote)
+						q.counters.votes = q.counters.votes + 1
+						return q.save()
+					})
 				}
-				return Promise.all([
-					Promise.resolve(q),
-					new Vote({
-						owner: req.account.user,
-						question: q,
-						code: req.body.code
-					}).save()
-				])
-			})
-			.then(([q, vote]) => {
-				q.votes.push(vote)
-				q.counters.votes = q.counters.votes + 1
-				return q.save()
 			})
 			.then(q => {
 				return Activity.push(
@@ -460,25 +476,38 @@ export default {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
 				}
-				const tag = _.find(q.tags, a => {
+				const tagIndex = _.findIndex(q.tags, a => {
 					return a.owner.equals(req.account.user) && a.question.equals(q._id)
 				})
-				if (tag) {
-					return Promise.reject(CONST.ERROR.ALREADY_TAGGED)
+				if (tagIndex !== -1) {
+					if (q.tags[tagIndex].code === req.body.code) {
+						const removedTags = q.tags.splice(tagIndex, 1)
+						q.counters.tags = q.counters.tags - 1
+						return q.save().then(() => {
+							return removedTags[0].remove().then(() => {
+								return Promise.resolve(q)
+							})
+						})
+					} else {
+						q.tags[tagIndex].code = req.body.code
+						return q.tags[tagIndex].save().then(() => {
+							return Promise.resolve(q)
+						})
+					}
+				} else {
+					return Promise.all([
+						Promise.resolve(q),
+						new Tag({
+							owner: req.account.user,
+							question: q,
+							code: req.body.code
+						}).save()
+					]).then(([q, tag]) => {
+						q.tags.push(tag)
+						q.counters.tags = q.counters.tags + 1
+						return q.save()
+					})
 				}
-				return Promise.all([
-					Promise.resolve(q),
-					new Tag({
-						owner: req.account.user,
-						question: q,
-						code: req.body.code
-					}).save()
-				])
-			})
-			.then(([q, tag]) => {
-				q.tags.push(tag)
-				q.counters.tags = q.counters.tags + 1
-				return q.save()
 			})
 			.then(q => {
 				return Activity.push(
