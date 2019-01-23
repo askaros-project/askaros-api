@@ -10,6 +10,7 @@ import jwt from 'jwt-simple'
 import { OAuth2Client } from 'google-auth-library'
 import User from './user.model'
 import Confirmation from './confirmation.model'
+import MailList from './mail_list.model'
 
 mongoose.Promise = require('bluebird')
 
@@ -93,6 +94,7 @@ accountSchema.statics.createByEmail = data => {
           return account.save()
         })
         .then(account => {
+          addMailRecepient(data.email)
           sendConfirmation(account, data.email, data.username)
           return account
         })
@@ -126,7 +128,7 @@ accountSchema.statics.loginByEmail = ({ email, password }) => {
     })
 }
 
-accountSchema.statics.loginByFacebook = (fbUserId, { name }) => {
+accountSchema.statics.loginByFacebook = (fbUserId, { name, email }) => {
   if (!fbUserId || !name) {
     return Promise.reject(CONST.ERROR.WRONG_REQUEST)
   }
@@ -149,6 +151,12 @@ accountSchema.statics.loginByFacebook = (fbUserId, { name }) => {
               user: user
             })
             return account.save()
+          })
+          .then(account => {
+            if (email) {
+              addMailRecepient(email)
+            }
+            return account
           })
       }
       return account
@@ -206,7 +214,12 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
               },
               user: user
             })
-            return account.save()
+            return account.save().then(account => {
+              if (data.email) {
+                addMailRecepient(data.email)
+              }
+              return account
+            })
           })
         }
         return account
@@ -217,7 +230,7 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
     })
 }
 
-accountSchema.statics.loginByTwitter = ({ twUserId, username }) => {
+accountSchema.statics.loginByTwitter = ({ twUserId, username, email }) => {
   return ModelClass.findOne({
     provider: CONST.ACCOUNT_PROVIDER.TWITTER,
     'credentials.twUserId': twUserId
@@ -236,7 +249,12 @@ accountSchema.statics.loginByTwitter = ({ twUserId, username }) => {
               },
               user: user
             })
-            return account.save()
+            return account.save().then(account => {
+              if (email) {
+                addMailRecepient(email)
+              }
+              return account
+            })
           })
       }
       return account
@@ -265,7 +283,20 @@ function sendConfirmation(account, email, username) {
     email: email
   })
   return confirmation.save().then(conf => {
-    emailSender.sendConfirmation(email, conf._id, username)
+    return emailSender.sendConfirmation(email, conf._id, username)
+  })
+}
+
+function addMailRecepient(email) {
+  return emailSender.addRecepient(email).then(recepId => {
+    return MailList.findOne({ type: CONST.MAIL_LIST.USERS })
+      .lean()
+      .then(maillist => {
+        if (!maillist) {
+          return Promise.reject('MailList for users not found!')
+        }
+        return emailSender.addRecepientToList(recepId, maillist.sendgridId)
+      })
   })
 }
 

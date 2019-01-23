@@ -53,5 +53,10 @@ export default {
   MARK: {
     SPAM: 1,
     LIKE: 2
+  },
+
+  MAIL_LIST: {
+    SUBSCRIBERS: 'SUBSCRIBERS',
+    USERS: 'USERS'
   }
 }

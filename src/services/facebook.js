@@ -1,5 +1,5 @@
-import axios from "axios"
-import queryString from "query-string"
+import axios from 'axios'
+import queryString from 'query-string'
 
 const graph = (url, params = {}) => {
 	return axios.get(
@@ -15,7 +15,7 @@ const parseError = (req, defaultValue) =>
 export default {
 	getUser: (fbUserId, accessToken) => {
 		return graph(fbUserId, {
-			fields: "name",
+			fields: 'name,email',
 			access_token: accessToken
 		})
 			.then(resp => {

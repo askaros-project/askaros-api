@@ -9,6 +9,7 @@ import questionRoute from './api/question.route'
 import activityRoute from './api/activity.route'
 import commentRoute from './api/comment.route'
 import adminRoute from './api/admin.route'
+import mailRoute from './api/mail.route'
 
 passport.use(jwtLogin)
 const fillAuth = (req, res, next) => {
@@ -99,6 +100,9 @@ export function API() {
   api.post('/comments', isAuth, isEnabled, commentRoute.add)
   api.put('/comments/:id/marks/:code', isAuth, isEnabled, commentRoute.mark)
 
+  // MAIL LIST
+  api.post('/maillist/subscribers', mailRoute.addSubscriber)
+
   // ADMIN
   api.get('/admin/accounts', isAuth, isAdmin, adminRoute.getAccounts)
   api.post('/admin/accounts/:id/admin', isAuth, isAdmin, adminRoute.toggleAdmin)
@@ -112,6 +116,32 @@ export function API() {
   api.delete('/admin/questions/:id', isAuth, isAdmin, adminRoute.deleteQuestion)
   api.get('/admin/comments', isAuth, isAdmin, adminRoute.getComments)
   api.delete('/admin/comments/:id', isAuth, isAdmin, adminRoute.deleteComment)
+  api.get('/admin/mail_lists', isAuth, isAdmin, adminRoute.getMailLists)
+  api.get('/admin/mail_campaigns', isAuth, isAdmin, adminRoute.getMailCampaigns)
+  api.post(
+    '/admin/mail_campaigns',
+    isAuth,
+    isAdmin,
+    adminRoute.createMailCampaign
+  )
+  api.put(
+    '/admin/mail_campaigns/:id',
+    isAuth,
+    isAdmin,
+    adminRoute.updateMailCampaign
+  )
+  api.post(
+    '/admin/mail_campaigns/:id/send',
+    isAuth,
+    isAdmin,
+    adminRoute.sendMailCampaign
+  )
+  api.delete(
+    '/admin/mail_campaigns/:id',
+    isAuth,
+    isAdmin,
+    adminRoute.deleteMailCampaign
+  )
 
   return api
 }

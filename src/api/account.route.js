@@ -1,14 +1,14 @@
-import Account from "../models/account.model"
-import Confirmation from "../models/confirmation.model"
-import CONST from "../const"
-import _ from "lodash"
-import facebook from "../services/facebook"
-import twitter from "../services/twitter"
+import Account from '../models/account.model'
+import Confirmation from '../models/confirmation.model'
+import CONST from '../const'
+import _ from 'lodash'
+import facebook from '../services/facebook'
+import twitter from '../services/twitter'
 
 const AccountRoute = {
   getData: (req, res) => {
     Account.findById(req.account._id)
-      .populate("user")
+      .populate('user')
       .then(account => {
         res.sendSuccess({ account: account })
       })
@@ -45,7 +45,7 @@ const AccountRoute = {
         }
         return Account.findOneAndUpdate(
           { _id: confirmation.account },
-          { $set: { "credentials.confirmed": true } }
+          { $set: { 'credentials.confirmed': true } }
         )
       })
       .then(() => {

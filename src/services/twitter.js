@@ -1,7 +1,7 @@
-import _ from "lodash"
-import axios from "axios"
-import Twitter from "twitter"
-import queryString from "query-string"
+import _ from 'lodash'
+import axios from 'axios'
+import Twitter from 'twitter'
+import queryString from 'query-string'
 
 let _tokenSecretsMap = {
   //
@@ -18,14 +18,14 @@ export default {
 
     return new Promise((resolve, reject) => {
       client.post(
-        "https://api.twitter.com/oauth/request_token",
+        'https://api.twitter.com/oauth/request_token',
         {
           oauth_callback: encodeURIComponent(
-            process.env.SITE_URL + "/callback/twitter"
+            process.env.SITE_URL + '/callback/twitter'
           )
         },
         (error, response, data) => {
-          if (error && data && typeof data.body == "string") {
+          if (error && data && typeof data.body == 'string') {
             // maybe JSON parse error - parse by own
             try {
               data = queryString.parse(data.body)
@@ -56,12 +56,12 @@ export default {
 
     return new Promise((resolve, reject) => {
       client.post(
-        "https://api.twitter.com/oauth/access_token",
+        'https://api.twitter.com/oauth/access_token',
         {
           oauth_verifier
         },
         (error, response, data) => {
-          if (error && data && typeof data.body == "string") {
+          if (error && data && typeof data.body == 'string') {
             // maybe JSON parse error - parse by own
             try {
               data = queryString.parse(data.body)
@@ -71,7 +71,10 @@ export default {
           } else if (error) {
             return reject(error)
           }
-          resolve({ username: data.screen_name, twUserId: data.user_id })
+          resolve({
+            username: data.screen_name,
+            twUserId: data.user_id
+          })
         }
       )
     })
