@@ -10,6 +10,7 @@ import activityRoute from './api/activity.route'
 import commentRoute from './api/comment.route'
 import adminRoute from './api/admin.route'
 import mailRoute from './api/mail.route'
+import feedbackRoute from './api/feedback.route'
 
 passport.use(jwtLogin)
 const fillAuth = (req, res, next) => {
@@ -102,6 +103,9 @@ export function API() {
 
   // MAIL LIST
   api.post('/maillist/subscribers', mailRoute.addSubscriber)
+
+  // FEEDBACK
+  api.post('/feedback', feedbackRoute.addMessage)
 
   // ADMIN
   api.get('/admin/accounts', isAuth, isAdmin, adminRoute.getAccounts)

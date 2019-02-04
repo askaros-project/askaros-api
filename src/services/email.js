@@ -139,6 +139,59 @@ export default {
     })
   },
 
+  sendFeedback: (name, email, message) => {
+    const request = sg.emptyRequest({
+      method: 'POST',
+      path: '/v3/mail/send',
+      body: {
+        from: {
+          email: process.env.MAIL_FROM,
+          name: process.env.MAIL_FROM_NAME
+        },
+        content: [
+          {
+            type: 'text/html',
+            value: '<h2>Feedback from {{name}} {{email}}!</h2> {{message}}'
+          }
+        ],
+        personalizations: [
+          {
+            substitutions: {
+              '{{name}}': name,
+              '{{email}}': email,
+              '{{message}}': message
+            },
+            to: [
+              {
+                email: process.env.MAIL_FEEDBACK,
+                name: 'Feedbacker'
+              }
+            ],
+            reply_to: {
+              email: process.env.MAIL_FROM,
+              name: process.env.MAIL_FROM_NAME
+            },
+            subject: process.env.MAIL_FEEDBACK_SUBJECT
+          }
+        ]
+      }
+    })
+
+    return new Promise((resolve, reject) => {
+      sg.API(request, function(err, resp) {
+        if (err) {
+          if (err.response && err.response.body && err.response.body.errors) {
+            reject(err.response.body.errors)
+          } else {
+            reject(err)
+          }
+        } else {
+          resolve(resp.body)
+        }
+      })
+    })
+  },
+
   createSender: data => {
     return new Promise((resolve, reject) => {
       let r = sg.emptyRequest({
