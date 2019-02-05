@@ -31,91 +31,124 @@ const activitySchema = new Schema({
 	createdAt: { type: Date, default: Date.now }
 })
 
-activitySchema.statics.push = (
-	{ type, owner, question, code, options = {} },
-	markAsRead = false
-) => {
-	const activity = new ModelClass({
-		type,
-		owner,
-		question,
-		code,
-		unread: markAsRead ? false : true
-	})
-	return activity.save().then(activity => {
-		if (type === ACTIVITY_TYPE.TAG && !question.owner.equals(owner)) {
-			return new ModelClass({
-				type: ACTIVITY_TYPE.SOMEONE_TAG,
-				owner: question.owner,
-				question: question
-			}).save()
-		} else if (type === ACTIVITY_TYPE.VOTE) {
-			return Promise.resolve()
-				.then(() => {
-					if (!question.owner.equals(owner)) {
-						return new ModelClass({
-							type: ACTIVITY_TYPE.SOMEONE_VOTE,
-							owner: question.owner,
-							question: question
-						}).save()
-					} else {
-						return Promise.resolve()
-					}
-				})
-				.then(() => {
-					return ModelClass.find({
-						type: ACTIVITY_TYPE.VOTE,
-						code: code,
-						question: question._id,
-						owner: { $ne: owner }
+activitySchema.statics.push = ({
+	type,
+	owner,
+	question,
+	code,
+	options = {}
+}) => {
+	let unread = true,
+		onlyOne = false
+	if (
+		type === ACTIVITY_TYPE.QUESTION ||
+		type === ACTIVITY_TYPE.TAG ||
+		type === ACTIVITY_TYPE.VOTE
+	) {
+		unread = false
+		onlyOne = true
+	} else if (type === ACTIVITY_TYPE.COMMENT) {
+		unread = false
+	}
+
+	return Promise.resolve()
+		.then(() => {
+			if (onlyOne) {
+				return ModelClass.findOne({ type, owner, question: question._id })
+					.lean()
+					.then(existsModel => {
+						return Promise.resolve(existsModel ? false : true)
 					})
-						.lean()
-						.select('owner')
-				})
-				.then(activities => {
-					return Promise.all(
-						_.map(activities, a => {
-							return new ModelClass({
-								type: ACTIVITY_TYPE.OTHERS_VOTE_AS_WELL,
-								owner: a.owner,
-								question: question
-							}).save()
-						})
-					)
-				})
-		} else if (type === ACTIVITY_TYPE.COMMENT) {
-			return Promise.resolve()
-				.then(() => {
-					if (!question.owner.equals(owner)) {
-						return new ModelClass({
-							type: ACTIVITY_TYPE.SOMEONE_COMMENT,
-							owner: question.owner,
-							question: question
-						}).save()
-					} else {
-						return Promise.resolve()
-					}
-				})
-				.then(() => {
-					if (options.replyTo) {
-						return Comment.findById(options.replyTo)
-							.lean()
-							.then(comment => {
-								if (!comment || comment.owner.equals(owner)) {
-									return Promise.resolve()
-								}
+			} else {
+				return Promise.resolve(true)
+			}
+		})
+		.then(allowed => {
+			if (!allowed) {
+				return Promise.resolve()
+			}
+			const activity = new ModelClass({
+				type,
+				owner,
+				question,
+				code,
+				unread
+			})
+			return activity.save().then(activity => {
+				if (type === ACTIVITY_TYPE.TAG && !question.owner.equals(owner)) {
+					return new ModelClass({
+						type: ACTIVITY_TYPE.SOMEONE_TAG,
+						owner: question.owner,
+						question: question
+					}).save()
+				} else if (type === ACTIVITY_TYPE.VOTE) {
+					return Promise.resolve()
+						.then(() => {
+							if (!question.owner.equals(owner)) {
 								return new ModelClass({
-									type: ACTIVITY_TYPE.SOMEONE_REPLY,
-									owner: comment.owner,
+									type: ACTIVITY_TYPE.SOMEONE_VOTE,
+									owner: question.owner,
 									question: question
 								}).save()
+							} else {
+								return Promise.resolve()
+							}
+						})
+						.then(() => {
+							return ModelClass.find({
+								type: ACTIVITY_TYPE.VOTE,
+								code: code,
+								question: question._id,
+								owner: { $ne: owner }
 							})
-					}
-				})
-		} else {
-			return Promise.resolve()
-		}
-	})
+								.lean()
+								.select('owner')
+						})
+						.then(activities => {
+							return Promise.all(
+								_.map(activities, a => {
+									return new ModelClass({
+										type: ACTIVITY_TYPE.OTHERS_VOTE_AS_WELL,
+										owner: a.owner,
+										question: question
+									}).save()
+								})
+							)
+						})
+				} else if (type === ACTIVITY_TYPE.COMMENT) {
+					return Promise.resolve()
+						.then(() => {
+							if (!question.owner.equals(owner)) {
+								return new ModelClass({
+									type: ACTIVITY_TYPE.SOMEONE_COMMENT,
+									owner: question.owner,
+									question: question
+								}).save()
+							} else {
+								return Promise.resolve()
+							}
+						})
+						.then(() => {
+							if (options.replyTo) {
+								return Comment.findById(options.replyTo)
+									.lean()
+									.then(comment => {
+										if (!comment || comment.owner.equals(owner)) {
+											return Promise.resolve()
+										}
+										return new ModelClass({
+											type: ACTIVITY_TYPE.SOMEONE_REPLY,
+											owner: comment.owner,
+											question: question
+										}).save()
+									})
+							}
+						})
+				} else {
+					return Promise.resolve()
+				}
+			})
+		})
 }
 
 activitySchema.plugin(mongoose_delete, {

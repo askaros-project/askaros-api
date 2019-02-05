@@ -58,5 +58,23 @@ export default {
   MAIL_LIST: {
     SUBSCRIBERS: 'SUBSCRIBERS',
     USERS: 'USERS'
+  },
+
+  SEX: {
+    MALE: 'Male',
+    FEMALE: 'Female'
+  },
+
+  EDUCATION_LEVEL: {
+    SPECIALIST: 'Specialist',
+    BACHELOR: 'Bachelor',
+    MASTER: 'Master',
+    DOCTOR: 'Doctor'
+  },
+
+  INCOME_LEVEL: {
+    MIN: 'min',
+    MIDDLE: 'middle',
+    MAX: 'max'
   }
 }

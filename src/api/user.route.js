@@ -12,10 +12,12 @@ export default {
 		User.findById(req.account.user)
 			.then(user => {
 				user.username = req.body.username
-				user.location = req.body.location
 				user.descr = req.body.descr
+				user.place = req.body.place
 				user.birthyear = req.body.birthyear
 				user.sex = req.body.sex
+				user.education = req.body.education
+				user.income = req.body.income
 				return user.save()
 			})
 			.then(user => {

@@ -85,15 +85,12 @@ export default {
 				return q
 					.save()
 					.then(() => {
-						return Activity.push(
-							{
-								type: CONST.ACTIVITY_TYPE.COMMENT,
-								owner: req.account.user,
-								question: q,
-								options: { replyTo: req.body.replyTo }
-							},
-							true
-						)
+						return Activity.push({
+							type: CONST.ACTIVITY_TYPE.COMMENT,
+							owner: req.account.user,
+							question: q,
+							options: { replyTo: req.body.replyTo }
+						})
 					})
 					.then(() => {
 						return populateQuery(req, Comment.findById(comment._id)).lean()

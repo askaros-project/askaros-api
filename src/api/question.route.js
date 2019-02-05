@@ -148,6 +148,18 @@ export default {
 			})
 	},
 
+	getVotes: (req, res) => {
+		return Vote.find({ question: req.params.id })
+			.populate({ path: 'owner', options: { lean: true } })
+			.lean()
+			.then(votes => {
+				res.sendSuccess({ votes })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	getNewestCollection: (req, res) => {
 		const limit = parseInt(req.query.limit) || 5
 		populateQuery(req, Question.find())
@@ -379,14 +391,11 @@ export default {
 			keywords: req.body.keywords || []
 		})
 			.then(question => {
-				return Activity.push(
-					{
-						type: CONST.ACTIVITY_TYPE.QUESTION,
-						owner: req.account.user,
-						question: question
-					},
-					true
-				).then(() => {
+				return Activity.push({
+					type: CONST.ACTIVITY_TYPE.QUESTION,
+					owner: req.account.user,
+					question: question
+				}).then(() => {
 					res.sendSuccess({ question })
 				})
 			})
@@ -440,15 +449,12 @@ export default {
 				}
 			})
 			.then(q => {
-				return Activity.push(
-					{
-						type: CONST.ACTIVITY_TYPE.VOTE,
-						owner: req.account.user,
-						question: q,
-						code: req.body.code
-					},
-					true
-				)
+				return Activity.push({
+					type: CONST.ACTIVITY_TYPE.VOTE,
+					owner: req.account.user,
+					question: q,
+					code: req.body.code
+				})
 			})
 			.then(() => {
 				return populateQuery(req, Question.findById(req.params.id))
@@ -510,15 +516,12 @@ export default {
 				}
 			})
 			.then(q => {
-				return Activity.push(
-					{
-						type: CONST.ACTIVITY_TYPE.TAG,
-						owner: req.account.user,
-						question: q,
-						code: req.body.code
-					},
-					true
-				)
+				return Activity.push({
+					type: CONST.ACTIVITY_TYPE.TAG,
+					owner: req.account.user,
+					question: q,
+					code: req.body.code
+				})
 			})
 			.then(() => {
 				return populateQuery(req, Question.findById(req.params.id))
