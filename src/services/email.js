@@ -377,5 +377,60 @@ export default {
         }
       })
     })
+  },
+
+  addToUnsub: (type, email) => {
+    let groupId
+    if (type === CONST.NOTIF_TYPE.TRANDING) {
+      groupId = process.env.MAIL_UNSUB_GROUP_ID
+    }
+    if (!groupId) {
+      return Promise.resolve()
+    }
+    return new Promise((resolve, reject) => {
+      const r = sg.emptyRequest({
+        method: 'POST',
+        path: `/v3/asm/groups/${groupId}/suppressions`,
+        body: { recipient_emails: [email] }
+      })
+      sg.API(r, (err, resp) => {
+        if (err) {
+          if (err.response && err.response.body && err.response.body.errors) {
+            reject(err.response.body.errors)
+          } else {
+            reject(err)
+          }
+        } else {
+          resolve()
+        }
+      })
+    })
+  },
+
+  removeFromUnsub: (type, email) => {
+    let groupId
+    if (type === CONST.NOTIF_TYPE.TRANDING) {
+      groupId = process.env.MAIL_UNSUB_GROUP_ID
+    }
+    if (!groupId) {
+      return Promise.resolve()
+    }
+    return new Promise((resolve, reject) => {
+      const r = sg.emptyRequest({
+        method: 'DELETE',
+        path: `/v3/asm/groups/${groupId}/suppressions/${email}`
+      })
+      sg.API(r, (err, resp) => {
+        if (err) {
+          if (err.response && err.response.body && err.response.body.errors) {
+            reject(err.response.body.errors)
+          } else {
+            reject(err)
+          }
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 }

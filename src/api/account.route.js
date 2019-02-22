@@ -8,7 +8,7 @@ import twitter from '../services/twitter'
 const AccountRoute = {
   getData: (req, res) => {
     Account.findById(req.account._id)
-      .populate('user')
+      .populate({ path: 'user', select: '+allowedNotif' })
       .then(account => {
         res.sendSuccess({ account: account })
       })

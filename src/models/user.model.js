@@ -7,33 +7,54 @@ mongoose.Promise = require('bluebird')
 
 const Schema = mongoose.Schema
 
-const userSchema = new Schema({
-	username: { type: String, required: true },
-	email: { type: String, required: false },
-	descr: { type: String, required: false },
-	place: { type: Object, required: false },
-	birthyear: { type: Number },
-	sex: { type: String, enum: [CONST.SEX.MALE, CONST.SEX.FEMALE] },
-	education: {
-		type: String,
-		enum: [
-			CONST.EDUCATION_LEVEL.PRIMARY_SCHOOL,
-			CONST.EDUCATION_LEVEL.SECONDARY_SCHOOL,
-			CONST.EDUCATION_LEVEL.SPECIALIST,
-			CONST.EDUCATION_LEVEL.BACHELOR,
-			CONST.EDUCATION_LEVEL.MASTER,
-			CONST.EDUCATION_LEVEL.DOCTORATE
-		]
+const userSchema = new Schema(
+	{
+		username: { type: String, required: true },
+		email: { type: String, required: false, select: false },
+		descr: { type: String, required: false },
+		place: { type: Object, required: false },
+		birthyear: { type: Number },
+		sex: { type: String, enum: [CONST.SEX.MALE, CONST.SEX.FEMALE] },
+		education: {
+			type: String,
+			enum: [
+				CONST.EDUCATION_LEVEL.PRIMARY_SCHOOL,
+				CONST.EDUCATION_LEVEL.SECONDARY_SCHOOL,
+				CONST.EDUCATION_LEVEL.SPECIALIST,
+				CONST.EDUCATION_LEVEL.BACHELOR,
+				CONST.EDUCATION_LEVEL.MASTER,
+				CONST.EDUCATION_LEVEL.DOCTORATE
+			]
+		},
+		income: {
+			type: String,
+			enum: [
+				CONST.INCOME_LEVEL.MIN,
+				CONST.INCOME_LEVEL.MIDDLE,
+				CONST.INCOME_LEVEL.MAX
+			]
+		},
+		allowedNotif: {
+			type: [
+				{
+					type: String,
+					enum: [
+						CONST.NOTIF_TYPE.TRANDING,
+						CONST.NOTIF_TYPE.SOMEONE_COMMENT_YOUR_Q,
+						CONST.NOTIF_TYPE.SOMEONE_COMMENT_SAME_Q
+					]
+				}
+			],
+			default: [
+				CONST.NOTIF_TYPE.TRANDING,
+				CONST.NOTIF_TYPE.SOMEONE_COMMENT_YOUR_Q,
+				CONST.NOTIF_TYPE.SOMEONE_COMMENT_SAME_Q
+			],
+			select: false
+		}
 	},
-	income: {
-		type: String,
-		enum: [
-			CONST.INCOME_LEVEL.MIN,
-			CONST.INCOME_LEVEL.MIDDLE,
-			CONST.INCOME_LEVEL.MAX
-		]
-	}
-})
+	{ usePushEach: true }
+)
 
 userSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: true })
 const ModelClass = mongoose.model('User', userSchema)

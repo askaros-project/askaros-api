@@ -29,16 +29,14 @@ const updateList = () => {
 				count: -1
 			}
 		}
-	])
-		.then(result => {
-			list = _.map(_.filter(result, (item) => item.count > 0), '_id')
-			console.log('Trending list upd', list.length)
-		})
+	]).then(result => {
+		list = _.map(_.filter(result, item => item.count > 0), '_id')
+	})
 }
 
 updateList() // initial upd
 
 const period = parseInt(process.env.TRENDING_LIST_UPD_PERIOD_IN_MIN) || 1
-setInterval(updateList, period*60*1000) // upd every x mins
+setInterval(updateList, period * 60 * 1000) // upd every x mins
 
 export const getList = () => list

@@ -78,5 +78,11 @@ export default {
     MIN: 'min',
     MIDDLE: 'middle',
     MAX: 'max'
+  },
+
+  NOTIF_TYPE: {
+    TRANDING: 'tranding',
+    SOMEONE_COMMENT_YOUR_Q: 'comment_your_q',
+    SOMEONE_COMMENT_SAME_Q: 'comment_same_q'
   }
 }

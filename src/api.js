@@ -61,6 +61,8 @@ export function API() {
 
   // USER
   api.put('/user', isAuth, userRoute.update)
+  api.post('/user/notifications/:type', isAuth, userRoute.subscribe)
+  api.delete('/user/notifications/:type', isAuth, userRoute.unsubscribe)
 
   // QUESTIONS
   api.get('/questions/search', questionRoute.getSearchQuestions)
