@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import CONST from '../const'
+import Activity from '../models/activity.model'
 import Vote from '../models/vote.model'
 import Tag from '../models/tag.model'
 import Mark from '../models/mark.model'
@@ -71,13 +72,13 @@ questionSchema.statics.createQuestion = ({
 	}
 
 	return getUri(title).then(uri => {
-		const activity = new ModelClass({
+		const question = new ModelClass({
 			owner,
 			title,
 			uri,
 			keywords
 		})
-		return activity.save()
+		return question.save()
 	})
 }
 
@@ -86,16 +87,18 @@ questionSchema.statics.deleteQuestion = id => {
 		if (!question) {
 			return Promise.reject('Not found')
 		}
-		return Tag.find({ question })
-			.remove()
+		return Activity.delete({ question})
 			.then(() => {
-				return Vote.find({ question }).remove()
+				return Tag.delete({ question })
 			})
 			.then(() => {
-				return Mark.find({ question }).remove()
+				return Vote.delete({ question })
 			})
 			.then(() => {
-				return Comment.find({ question }).remove()
+				return Mark.delete({ question })
+			})
+			.then(() => {
+				return Comment.delete({ question })
 			})
 			.then(() => {
 				return question.delete()

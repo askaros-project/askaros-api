@@ -6,6 +6,7 @@ import Vote from '../models/vote.model'
 import Tag from '../models/tag.model'
 import Mark from '../models/mark.model'
 import Comment from '../models/comment.model'
+import { getList as getTrendingList } from '../services/trending_list'
 import Promise from 'bluebird'
 require('mongoose-query-random')
 
@@ -162,9 +163,11 @@ export default {
 
 	getNewestCollection: (req, res) => {
 		const limit = parseInt(req.query.limit) || 5
+		const offset = parseInt(req.query.offset) || 0
 		populateQuery(req, Question.find())
 			.sort({ createdAt: -1 })
 			.limit(limit)
+			.skip(offset)
 			.lean()
 			.then(questions => {
 				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
@@ -296,60 +299,29 @@ export default {
 	},
 
 	getTrendingCollection: (req, res) => {
-		const limit = parseInt(req.query.limit) || 5
+		const limit = parseInt(req.query.limit) || 10
 		const offset = parseInt(req.query.offset) || 0
-		const fromDate = new Date()
-		fromDate.setDate(fromDate.getDate() - 15) // last 15 days
-		return Activity.aggregate([
-			{
-				$match: {
-					createdAt: { $gte: fromDate },
-					type: {
-						$in: [
-							CONST.ACTIVITY_TYPE.TAG,
-							CONST.ACTIVITY_TYPE.VOTE,
-							CONST.ACTIVITY_TYPE.COMMENT
-						]
-					}
-				}
-			},
-			{
-				$group: { _id: '$question', count: { $sum: 1 } }
-			},
-			{
-				$sort: {
-					count: -1
-				}
-			},
-			{
-				$skip: offset
-			},
-			{
-				$limit: 100 // Activity may have deleted questions. Lets filter its after
-			}
-		])
-			.then(result => {
-				let sortedIds = _.map(result, '_id')
-				return Question.find({
-					_id: { $in: sortedIds }
+		const trendingList = getTrendingList()
+		const list = trendingList.slice( offset, offset + limit )
+
+		return Question.find({
+			_id: { $in: list }
+		})
+			.populate({ path: 'votes', options: { lean: true } })
+			.lean()
+			.then(questions => {
+				return questions.sort((q1, q2) => {
+					return (
+						_.findIndex(list, id => id.equals(q1._id)) -
+						_.findIndex(list, id => id.equals(q2._id))
+					)
 				})
-					.populate({ path: 'votes', options: { lean: true } })
-					.lean()
-					.limit(limit)
-					.then(questions => {
-						return questions.sort((q1, q2) => {
-							return (
-								_.findIndex(sortedIds, id => id.equals(q1._id)) -
-								_.findIndex(sortedIds, id => id.equals(q2._id))
-							)
-						})
-					})
 			})
 			.then(questions => {
 				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
 			})
 			.then(questions => {
-				res.sendSuccess({ questions })
+				res.sendSuccess({ questions, total: trendingList.length })
 			})
 			.catch(err => {
 				res.sendError(err)

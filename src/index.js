@@ -11,7 +11,7 @@ import morgan from 'morgan'
 import mongoose from 'mongoose'
 import util from 'util'
 import seeder from './seeder'
-import campaignScheduler from './services/campaign-scheduler'
+import campaignScheduler from './services/campaign_scheduler'
 import { API } from './api'
 
 // CONNECT TO DATABASE
