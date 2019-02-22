@@ -78,7 +78,7 @@ accountSchema.statics.createByEmail = data => {
           }
         })
         .then(() => {
-          const user = new User({ username: data.username })
+          const user = new User({ username: data.username, email: data.email })
           return Promise.all([user.save(), pbkdf2.hashPassword(data.password)])
         })
         .then(([user, hash]) => {
@@ -139,7 +139,8 @@ accountSchema.statics.loginByFacebook = (fbUserId, { name, email }) => {
     .then(account => {
       if (!account) {
         return new User({
-          username: name
+          username: name,
+          email
         })
           .save()
           .then(user => {
@@ -204,7 +205,8 @@ accountSchema.statics.loginByGoogle = ({ code }) => {
       }).then(account => {
         if (!account) {
           const user = new User({
-            username: data.name
+            username: data.name,
+            email: data.email
           })
           return user.save().then(user => {
             const account = new ModelClass({
@@ -238,7 +240,8 @@ accountSchema.statics.loginByTwitter = ({ twUserId, username, email }) => {
     .then(account => {
       if (!account) {
         return new User({
-          username: username
+          username: username,
+          email
         })
           .save()
           .then(user => {
