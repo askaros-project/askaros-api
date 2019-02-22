@@ -66,10 +66,12 @@ export default {
   },
 
   EDUCATION_LEVEL: {
+    PRIMARY_SCHOOL: 'PrimarySchool',
+    SECONDARY_SCHOOL: 'SecondarySchool',
     SPECIALIST: 'Specialist',
     BACHELOR: 'Bachelor',
     MASTER: 'Master',
-    DOCTOR: 'Doctor'
+    DOCTORATE: 'Doctorate'
   },
 
   INCOME_LEVEL: {
