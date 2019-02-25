@@ -12,7 +12,7 @@ const markSchema = new Schema({
 	comment: { type: Schema.Types.ObjectId, ref: 'Comment' },
 	code: {
 		type: Number,
-		enum: [CONST.MARK.SPAM, CONST.MARK.LIKE],
+		enum: [CONST.MARK.SPAM, CONST.MARK.LIKE, CONST.MARK.BLOCK_NOTIF],
 		required: true
 	},
 	createdAt: { type: Date, default: Date.now }

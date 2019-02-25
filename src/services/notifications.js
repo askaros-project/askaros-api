@@ -2,6 +2,7 @@ import _ from 'lodash'
 import CONST from '../const'
 import moment from 'moment'
 import Notification from '../models/notification.model'
+import Mark from '../models/mark.model'
 import emailSender from './email'
 
 const Promise = require('bluebird')
@@ -50,33 +51,48 @@ setInterval(() => {
 					notif.save()
 					return
 				}
-				if (
-					notif.attempts === 0 ||
-					new Date(notif.attemptAt).getTime() + ATTEMPT_PERIOD <= Date.now()
-				) {
-					return emailSender
-						.sendNotification({
-							email: notif.owner.email,
-							name: notif.owner.username,
-							text: _getNotifText(notif)
-						})
-						.then(() => {
-							notif.status = CONST.NOTIF_STATUS.SENT
-							return notif.save()
-						})
-						.catch(err => {
-							/**/ console.warn(
-								'[Notification service] warn - cannot send notif email cause',
-								err
-							)
-							notif.attempts = notif.attempts + 1
-							notif.attemptAt = Date.now()
-							if (notif.attempts >= 3) {
-								notif.status = CONST.NOTIF_STATUS.FAILED
-							}
-							return notif.save()
-						})
-				}
+
+				// check if users marks this question as "BLOCK_NOTIF"
+				Mark.findOne({
+					owner: notif.owner,
+					question: notif.question,
+					code: CONST.MARK.BLOCK_NOTIF
+				})
+					.lean()
+					.then(mark => {
+						if (mark) {
+							notif.status = CONST.NOTIF_STATUS.NOT_ALLOWED
+							notif.save()
+							return
+						}
+						if (
+							notif.attempts === 0 ||
+							new Date(notif.attemptAt).getTime() + ATTEMPT_PERIOD <= Date.now()
+						) {
+							return emailSender
+								.sendNotification({
+									email: notif.owner.email,
+									name: notif.owner.username,
+									text: _getNotifText(notif)
+								})
+								.then(() => {
+									notif.status = CONST.NOTIF_STATUS.SENT
+									return notif.save()
+								})
+								.catch(err => {
+									/**/ console.warn(
+										'[Notification service] warn - cannot send notif email cause',
+										err
+									)
+									notif.attempts = notif.attempts + 1
+									notif.attemptAt = Date.now()
+									if (notif.attempts >= 3) {
+										notif.status = CONST.NOTIF_STATUS.FAILED
+									}
+									return notif.save()
+								})
+						}
+					})
 			})
 		})
 }, MONITOR_INTERVAL)

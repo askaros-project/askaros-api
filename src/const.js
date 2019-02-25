@@ -52,7 +52,8 @@ export default {
 
   MARK: {
     SPAM: 1,
-    LIKE: 2
+    LIKE: 2,
+    BLOCK_NOTIF: 3
   },
 
   MAIL_LIST: {
