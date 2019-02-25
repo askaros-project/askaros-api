@@ -7,6 +7,7 @@ import Tag from '../models/tag.model'
 import Mark from '../models/mark.model'
 import Comment from '../models/comment.model'
 import { getList as getTrendingList } from '../services/trending_list'
+import NotificationService from '../services/notifications'
 import Promise from 'bluebird'
 require('mongoose-query-random')
 
@@ -142,7 +143,17 @@ export default {
 				return prepareToClient(req, question)
 			})
 			.then(question => {
+				if (req.account) {
+					return NotificationService.markAsReceived({
+						question: question,
+						owner: req.account.user
+					}).then(() => question)
+				}
+				return question
+			})
+			.then(question => {
 				res.sendSuccess({ question })
+				return question
 			})
 			.catch(err => {
 				res.sendError(err)
@@ -302,7 +313,7 @@ export default {
 		const limit = parseInt(req.query.limit) || 10
 		const offset = parseInt(req.query.offset) || 0
 		const trendingList = getTrendingList()
-		const list = trendingList.slice( offset, offset + limit )
+		const list = trendingList.slice(offset, offset + limit)
 
 		return Question.find({
 			_id: { $in: list }

@@ -3,7 +3,10 @@ import CONST from '../const'
 import Comment from './comment.model'
 import mongoose from 'mongoose'
 import mongoose_delete from 'mongoose-delete'
-mongoose.Promise = require('bluebird')
+import NotificationsService from '../services/notifications'
+
+const Promise = require('bluebird')
+mongoose.Promise = Promise
 
 const { ACTIVITY_TYPE } = CONST
 
@@ -39,21 +42,21 @@ activitySchema.statics.push = ({
 	options = {}
 }) => {
 	let unread = true,
-		onlyOne = false
+		preventMany = false
 	if (
 		type === ACTIVITY_TYPE.QUESTION ||
 		type === ACTIVITY_TYPE.TAG ||
 		type === ACTIVITY_TYPE.VOTE
 	) {
 		unread = false
-		onlyOne = true
+		preventMany = true
 	} else if (type === ACTIVITY_TYPE.COMMENT) {
 		unread = false
 	}
 
 	return Promise.resolve()
 		.then(() => {
-			if (onlyOne) {
+			if (preventMany) {
 				return ModelClass.findOne({ type, owner, question: question._id })
 					.lean()
 					.then(existsModel => {
@@ -148,6 +151,42 @@ activitySchema.statics.push = ({
 					return Promise.resolve()
 				}
 			})
+		})
+		.then(() => {
+			/* Send notifications */
+
+			if (type === ACTIVITY_TYPE.COMMENT) {
+				return Promise.resolve()
+					.then(() => {
+						if (question.owner.equals(owner)) {
+							return
+						}
+						return NotificationsService.create({
+							type: CONST.NOTIF_TYPE.SOMEONE_COMMENT_YOUR_Q,
+							owner: question.owner,
+							question: question
+						})
+					})
+					.then(() => {
+						return Comment.find({
+							question,
+							owner: { $nin: [owner, question.owner] }
+						}).lean()
+					})
+					.then(comments => {
+						comments = _.uniqBy(comments, c => '' + c.owner)
+						return Promise.map(
+							comments,
+							comment =>
+								NotificationsService.create({
+									type: CONST.NOTIF_TYPE.SOMEONE_COMMENT_SAME_Q,
+									owner: comment.owner,
+									question: question
+								}),
+							{ concurrency: 1 }
+						)
+					})
+			}
 		})
 }
 

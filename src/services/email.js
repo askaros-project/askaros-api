@@ -84,7 +84,72 @@ const prepareCampaignHtml = function(html) {
     })
 }
 
+const sendEmail = ({ email, name, subject, text, substitutions = {} }) => {
+  /***/ console.log('[Email service] send email', {
+    email,
+    name,
+    subject,
+    text
+  })
+
+  const request = sg.emptyRequest({
+    method: 'POST',
+    path: '/v3/mail/send',
+    body: {
+      from: {
+        email: process.env.MAIL_FROM,
+        name: process.env.MAIL_FROM_NAME
+      },
+      content: [
+        {
+          type: 'text/html',
+          value: text
+        }
+      ],
+      personalizations: [
+        {
+          substitutions: substitutions,
+          to: [
+            {
+              email: email,
+              name: name
+            }
+          ],
+          reply_to: {
+            email: process.env.MAIL_FROM,
+            name: process.env.MAIL_FROM_NAME
+          },
+          subject: subject
+        }
+      ]
+    }
+  })
+
+  return new Promise((resolve, reject) => {
+    sg.API(request, function(err, resp) {
+      if (err) {
+        if (err.response && err.response.body && err.response.body.errors) {
+          reject(err.response.body.errors)
+        } else {
+          reject(err)
+        }
+      } else {
+        resolve(resp.body)
+      }
+    })
+  })
+}
+
 export default {
+  sendNotification: ({
+    email,
+    name,
+    subject = process.env.MAIL_NOTIFICATION_SUBJECT,
+    text
+  }) => {
+    return sendEmail({ email, name, subject, text })
+  },
+
   sendConfirmation: (email, confirmationId, name) => {
     const request = sg.emptyRequest({
       method: 'POST',

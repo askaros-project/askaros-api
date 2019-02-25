@@ -84,5 +84,13 @@ export default {
     TRANDING: 'tranding',
     SOMEONE_COMMENT_YOUR_Q: 'comment_your_q',
     SOMEONE_COMMENT_SAME_Q: 'comment_same_q'
+  },
+
+  NOTIF_STATUS: {
+    NEW: 'NEW',
+    SENT: 'SENT',
+    RECEIVED: 'RECEIVED',
+    FAILED: 'FAILED',
+    NOT_ALLOWED: 'NOT_ALLOWED'
   }
 }
