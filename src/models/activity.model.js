@@ -169,7 +169,7 @@ activitySchema.statics.push = ({
 					})
 					.then(() => {
 						return Comment.find({
-							question,
+							question: question._id,
 							owner: { $nin: [owner, question.owner] }
 						}).lean()
 					})

@@ -266,6 +266,7 @@ export default {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		const limit = parseInt(req.query.limit) || 5
+		const offset = parseInt(req.query.offset) || 0
 		return Tag.aggregate([
 			{
 				$match: { code: parseInt(req.query.code) }
@@ -280,6 +281,9 @@ export default {
 			},
 			{
 				$limit: limit
+			},
+			{
+				$skip: offset
 			}
 		])
 			.then(result => {
@@ -526,33 +530,45 @@ export default {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
 		}
 		Question.findById(req.params.id)
-			.populate({ path: 'marks', options: { lean: true } })
+			.populate({ path: 'marks' })
 			.select('+counters')
 			.then(q => {
 				if (!q) {
 					return res.sendError(CONST.ERROR.WRONG_REQUEST)
 				}
-				const mark = _.find(q.marks, m => {
+				const markIndex = _.findIndex(q.marks, m => {
 					return m.owner.equals(req.account.user) && m.code === req.body.code
 				})
-				if (mark) {
-					return Promise.reject(CONST.ERROR.ALREADY_MARKED)
+				if (markIndex !== -1) {
+					const removedMarks = q.marks.splice(markIndex, 1)
+					return Promise.resolve()
+						.then(() => {
+							if (req.body.code === CONST.MARK.SPAM) {
+								q.counters.spam_mark = q.counters.spam_mark - 1
+								return q.save()
+							}
+						})
+						.then(() => {
+							return removedMarks[0].remove().then(() => {
+								return Promise.resolve(q)
+							})
+						})
+				} else {
+					return Promise.all([
+						Promise.resolve(q),
+						new Mark({
+							owner: req.account.user,
+							question: q,
+							code: req.body.code
+						}).save()
+					]).then(([q, mark]) => {
+						q.marks.push(mark)
+						if (req.body.code === CONST.MARK.SPAM) {
+							q.counters.spam_mark = q.counters.spam_mark + 1
+						}
+						return q.save()
+					})
 				}
-				return Promise.all([
-					Promise.resolve(q),
-					new Mark({
-						owner: req.account.user,
-						question: q,
-						code: req.body.code
-					}).save()
-				])
-			})
-			.then(([q, mark]) => {
-				q.marks.push(mark)
-				if (req.body.code === CONST.MARK.SPAM) {
-					q.counters.spam_mark = q.counters.spam_mark + 1
-				}
-				return q.save()
 			})
 			.then(question => {
 				return populateQuery(req, Question.findById(req.params.id))
