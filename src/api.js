@@ -67,13 +67,9 @@ export function API() {
   // QUESTIONS
   api.get('/questions/search', questionRoute.getSearchQuestions)
   api.get('/questions/profile', isAuth, questionRoute.getProfileQuestions)
+  api.get('/questions/random_question', questionRoute.getRandomQuestion)
   api.get('/questions/:id/votes', questionRoute.getVotes)
   api.get('/questions/:uri', fillAuth, questionRoute.getByUri)
-  api.get(
-    '/questions/collection/random',
-    fillAuth,
-    questionRoute.getRandomCollection
-  )
   api.get(
     '/questions/collection/newest',
     fillAuth,

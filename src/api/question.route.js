@@ -160,6 +160,19 @@ export default {
 			})
 	},
 
+	getRandomQuestion: (req, res) => {
+		Question.find()
+			.select('uri')
+			.lean()
+			.then(questions => {
+				let index = _.random(0, questions.length - 1)
+				res.sendSuccess({ question: questions[index] })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	getVotes: (req, res) => {
 		return Vote.find({ question: req.params.id })
 			.populate({ path: 'owner', options: { lean: true } })
@@ -180,42 +193,6 @@ export default {
 			.limit(limit)
 			.skip(offset)
 			.lean()
-			.then(questions => {
-				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
-			})
-			.then(questions => {
-				res.sendSuccess({ questions })
-			})
-			.catch(err => {
-				res.sendError(err)
-			})
-	},
-
-	getRandomCollection: (req, res) => {
-		const limit = parseInt(req.query.limit) || 5
-		Question.find()
-			.select('_id')
-			.lean()
-			.then(ids => {
-				if (ids.length <= limit) {
-					return Question.find()
-						.populate({ path: 'votes', options: { lean: true } })
-						.lean()
-				} else {
-					let randomIndexes = []
-					while (randomIndexes.length < limit) {
-						let index = _.random(0, ids.length - 1)
-						if (randomIndexes.indexOf(index) === -1) {
-							randomIndexes.push(index)
-						}
-					}
-					return Question.find({
-						_id: { $in: _.map(randomIndexes, i => ids[i]) }
-					})
-						.lean()
-						.populate({ path: 'votes', options: { lean: true } })
-				}
-			})
 			.then(questions => {
 				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
 			})
