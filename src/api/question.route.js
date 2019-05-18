@@ -186,7 +186,7 @@ export default {
 	},
 
 	getAllCollection: (req, res) => {
-		const limit = parseInt(req.query.limit) || 5
+		const limit = parseInt(req.query.limit) || 10000
 		const offset = parseInt(req.query.offset) || 0
 		populateQuery(req, Question.find())
 			.sort({ createdAt: -1 })
