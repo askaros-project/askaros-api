@@ -71,6 +71,11 @@ export function API() {
   api.get('/questions/:id/votes', questionRoute.getVotes)
   api.get('/questions/:uri', fillAuth, questionRoute.getByUri)
   api.get(
+    '/questions/collection/all',
+    fillAuth,
+    questionRoute.getAllCollection
+  )
+  api.get(
     '/questions/collection/newest',
     fillAuth,
     questionRoute.getNewestCollection
@@ -90,6 +95,7 @@ export function API() {
   api.post('/questions/:id/vote', isAuth, isEnabled, questionRoute.vote)
   api.post('/questions/:id/tag', isAuth, isEnabled, questionRoute.tag)
   api.post('/questions/:id/mark', isAuth, isEnabled, questionRoute.mark)
+  // api.delete('/questions/:id', isAuth, questionsRoute.delete) // added to remove questions, chekc that user can remove only own question
 
   // ACTIVITY
   api.get('/activity', isAuth, activityRoute.getItems)

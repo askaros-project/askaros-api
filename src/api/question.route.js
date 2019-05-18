@@ -185,6 +185,25 @@ export default {
 			})
 	},
 
+	getAllCollection: (req, res) => {
+		const limit = parseInt(req.query.limit) || 5
+		const offset = parseInt(req.query.offset) || 0
+		populateQuery(req, Question.find())
+			.sort({ createdAt: -1 })
+			.limit(limit)
+			.skip(offset)
+			.lean()
+			.then(questions => {
+				return Promise.all(_.map(questions, q => prepareToClient(req, q)))
+			})
+			.then(questions => {
+				res.sendSuccess({ questions })
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	getNewestCollection: (req, res) => {
 		const limit = parseInt(req.query.limit) || 5
 		const offset = parseInt(req.query.offset) || 0
