@@ -95,7 +95,7 @@ export function API() {
   api.post('/questions/:id/vote', isAuth, isEnabled, questionRoute.vote)
   api.post('/questions/:id/tag', isAuth, isEnabled, questionRoute.tag)
   api.post('/questions/:id/mark', isAuth, isEnabled, questionRoute.mark)
-  // api.delete('/questions/:id', isAuth, questionsRoute.delete) // added to remove questions, chekc that user can remove only own question
+  api.delete('/questions/:id', isAuth, questionRoute.delete) // added to remove questions, check that user can remove only own question
 
   // ACTIVITY
   api.get('/activity', isAuth, activityRoute.getItems)

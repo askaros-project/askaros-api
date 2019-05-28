@@ -387,6 +387,16 @@ export default {
 			})
 	},
 
+	delete: (req, res) => {
+		Question.deleteQuestion(req.params.id)
+			.then(() => {
+				res.sendSuccess()
+			})
+			.catch(err => {
+				res.sendError(err)
+			})
+	},
+
 	vote: (req, res) => {
 		if (!req.body.code) {
 			return res.sendError(CONST.ERROR.WRONG_REQUEST)
