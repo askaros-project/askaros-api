@@ -30,7 +30,7 @@
     "jwt-simple": "^0.5.1",
     "limax": "^1.6.0",
     "moment": "^2.20.1",
-    "mongoose": "^4.10.6",
+    "mongoose": "^5.7.5",
     "mongoose-auto-increment": "^5.0.1",
     "mongoose-delete": "^0.3.4",
     "mongoose-query-random": "^1.0.1",
