@@ -37,7 +37,7 @@
     "mongoose-random": "^0.1.1",
     "mongoose-sequence": "^4.0.1",
     "morgan": "^1.8.0",
-    "node-fetch": "^1.7.3",
+    "node-fetch": "^2.6.7",
     "npm-run-all": "^4.1.2",
     "passport": "^0.3.2",
     "passport-jwt": "^2.2.1",
